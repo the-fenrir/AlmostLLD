@@ -455,6 +455,46 @@
     footer { flex-direction: column; gap: 24px; align-items: flex-start; }
     footer .stamp { text-align: left; }
   }
+
+  /* LANG TABS */
+  .lang-tabs {
+    display: flex;
+    gap: 4px;
+    margin: 18px 0 0 0;
+    border-bottom: 1px solid rgba(26,23,20,0.3);
+  }
+  .lang-tab {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-bottom: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    border-radius: 2px 2px 0 0;
+    position: relative;
+    bottom: -1px;
+  }
+  .lang-tab:hover { color: var(--accent); }
+  .lang-tab.active {
+    color: var(--accent);
+    border-color: rgba(26,23,20,0.3);
+    border-bottom: 1px solid var(--paper);
+    background: var(--paper);
+  }
+  .lang-panels { margin-top: 0; }
+  .lang-panel { display: none; }
+  .lang-panel.active { display: block; }
+  .lang-panel pre.code { margin-top: 0; border-radius: 0 4px 4px 4px; }
+
+  /* Override the JAVA badge color when showing C++ */
+  pre.code.cpp::before { content: 'C++17'; }
+
 </style>
 </head>
 <body>
@@ -556,7 +596,13 @@
     <div class="problem-body">
       <div class="label">Solution</div>
       <div class="content">
-<pre class="code"><code><span class="tk-k">import</span> java.io.*;
+<div class="lang-tabs">
+  <button class="lang-tab active" data-lang="java">Java</button>
+  <button class="lang-tab" data-lang="cpp">C++</button>
+</div>
+<div class="lang-panels">
+  <div class="lang-panel active" data-lang="java">
+    <pre class="code"><code><span class="tk-k">import</span> java.io.*;
 <span class="tk-k">import</span> java.nio.file.*;
 <span class="tk-k">import</span> java.util.*;
 <span class="tk-k">import</span> java.util.stream.*;
@@ -625,6 +671,79 @@
         <span class="tk-k">return true</span>;
     }
 }</code></pre>
+  </div>
+  <div class="lang-panel" data-lang="cpp">
+    <pre class="code cpp"><code><span class="tk-c">// C++17. Top-K IPs from access logs.</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;algorithm&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;cstdint&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;fstream&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;iostream&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;queue&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;sstream&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;string&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;unordered_map&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;vector&gt;</span>
+
+<span class="tk-k">struct</span> <span class="tk-t">IpCount</span> { <span class="tk-t">std::string</span> ip; <span class="tk-k">long long</span> count; };
+
+<span class="tk-k">static bool</span> <span class="tk-n">isValidIp</span>(<span class="tk-k">const</span> <span class="tk-t">std::string</span>&amp; s) {
+    <span class="tk-k">int</span> dots = <span class="tk-n">0</span>, n = <span class="tk-n">0</span>; <span class="tk-k">bool</span> hasDigit = <span class="tk-k">false</span>;
+    <span class="tk-k">for</span> (<span class="tk-k">char</span> c : s) {
+        <span class="tk-k">if</span> (c == <span class="tk-s">'.'</span>) {
+            <span class="tk-k">if</span> (!hasDigit || n &gt; <span class="tk-n">255</span>) <span class="tk-k">return false</span>;
+            ++dots; n = <span class="tk-n">0</span>; hasDigit = <span class="tk-k">false</span>;
+        } <span class="tk-k">else if</span> (c &gt;= <span class="tk-s">'0'</span> &amp;&amp; c &lt;= <span class="tk-s">'9'</span>) {
+            n = n * <span class="tk-n">10</span> + (c - <span class="tk-s">'0'</span>);
+            hasDigit = <span class="tk-k">true</span>;
+            <span class="tk-k">if</span> (n &gt; <span class="tk-n">255</span>) <span class="tk-k">return false</span>;
+        } <span class="tk-k">else return false</span>;
+    }
+    <span class="tk-k">return</span> dots == <span class="tk-n">3</span> &amp;&amp; hasDigit;
+}
+
+<span class="tk-t">std::vector</span>&lt;<span class="tk-t">IpCount</span>&gt; <span class="tk-n">topK</span>(<span class="tk-k">const</span> <span class="tk-t">std::string</span>&amp; path, <span class="tk-k">int</span> k) {
+    <span class="tk-k">if</span> (k &lt;= <span class="tk-n">0</span>) <span class="tk-k">throw</span> <span class="tk-t">std::invalid_argument</span>(<span class="tk-s">"k must be positive"</span>);
+
+    <span class="tk-t">std::ifstream</span> in(path);
+    <span class="tk-k">if</span> (!in) <span class="tk-k">throw</span> <span class="tk-t">std::runtime_error</span>(<span class="tk-s">"open failed"</span>);
+
+    <span class="tk-t">std::unordered_map</span>&lt;<span class="tk-t">std::string</span>, <span class="tk-k">long long</span>&gt; counts;
+    <span class="tk-k">long long</span> malformed = <span class="tk-n">0</span>;
+    <span class="tk-t">std::string</span> line;
+    <span class="tk-k">while</span> (<span class="tk-t">std::getline</span>(in, line)) {
+        <span class="tk-k">auto</span> sp = line.<span class="tk-n">find</span>(<span class="tk-s">' '</span>);
+        <span class="tk-k">if</span> (sp == <span class="tk-t">std::string::npos</span> || sp == <span class="tk-n">0</span>) { ++malformed; <span class="tk-k">continue</span>; }
+        <span class="tk-t">std::string</span> ip = line.<span class="tk-n">substr</span>(<span class="tk-n">0</span>, sp);
+        <span class="tk-k">if</span> (!isValidIp(ip)) { ++malformed; <span class="tk-k">continue</span>; }
+        ++counts[<span class="tk-t">std::move</span>(ip)];
+    }
+    <span class="tk-k">if</span> (malformed) <span class="tk-t">std::cerr</span> &lt;&lt; <span class="tk-s">"skipped "</span> &lt;&lt; malformed &lt;&lt; <span class="tk-s">" malformed lines\n"</span>;
+
+    <span class="tk-c">// Min-heap of size k. Smaller counts evicted first; for ties,</span>
+    <span class="tk-c">// the lexicographically LARGER ip is evicted (smaller ip wins).</span>
+    <span class="tk-k">auto</span> heapCmp = [](<span class="tk-k">const</span> <span class="tk-t">IpCount</span>&amp; a, <span class="tk-k">const</span> <span class="tk-t">IpCount</span>&amp; b) {
+        <span class="tk-k">if</span> (a.count != b.count) <span class="tk-k">return</span> a.count &gt; b.count;
+        <span class="tk-k">return</span> a.ip &lt; b.ip;
+    };
+    <span class="tk-t">std::priority_queue</span>&lt;<span class="tk-t">IpCount</span>, <span class="tk-t">std::vector</span>&lt;<span class="tk-t">IpCount</span>&gt;, <span class="tk-k">decltype</span>(heapCmp)&gt; heap(heapCmp);
+
+    <span class="tk-k">for</span> (<span class="tk-k">auto</span>&amp; [ip, c] : counts) {
+        heap.<span class="tk-n">push</span>({ip, c});
+        <span class="tk-k">if</span> ((<span class="tk-k">int</span>)heap.<span class="tk-n">size</span>() &gt; k) heap.<span class="tk-n">pop</span>();
+    }
+
+    <span class="tk-t">std::vector</span>&lt;<span class="tk-t">IpCount</span>&gt; result;
+    result.<span class="tk-n">reserve</span>(heap.<span class="tk-n">size</span>());
+    <span class="tk-k">while</span> (!heap.<span class="tk-n">empty</span>()) { result.<span class="tk-n">push_back</span>(heap.<span class="tk-n">top</span>()); heap.<span class="tk-n">pop</span>(); }
+    <span class="tk-t">std::sort</span>(result.<span class="tk-n">begin</span>(), result.<span class="tk-n">end</span>(),
+        [](<span class="tk-k">const auto</span>&amp; a, <span class="tk-k">const auto</span>&amp; b) {
+            <span class="tk-k">if</span> (a.count != b.count) <span class="tk-k">return</span> a.count &gt; b.count;
+            <span class="tk-k">return</span> a.ip &lt; b.ip;
+        });
+    <span class="tk-k">return</span> result;
+}</code></pre>
+  </div>
+</div>
 
         <div class="discussion">
           <div class="label-row">▸ Discussion / Follow-ups</div>
@@ -688,7 +807,13 @@
     <div class="problem-body">
       <div class="label">Solution</div>
       <div class="content">
-<pre class="code"><code><span class="tk-k">import</span> java.util.*;
+<div class="lang-tabs">
+  <button class="lang-tab active" data-lang="java">Java</button>
+  <button class="lang-tab" data-lang="cpp">C++</button>
+</div>
+<div class="lang-panels">
+  <div class="lang-panel active" data-lang="java">
+    <pre class="code"><code><span class="tk-k">import</span> java.util.*;
 <span class="tk-k">import</span> java.util.concurrent.locks.*;
 
 <span class="tk-c">// Bucketed sliding window. O(1) record, O(W) query (W = window seconds).</span>
@@ -744,6 +869,65 @@
         <span class="tk-k">return</span> total == <span class="tk-n">0</span> ? <span class="tk-n">0.0</span> : (<span class="tk-k">double</span>) errors / total;
     }
 }</code></pre>
+  </div>
+  <div class="lang-panel" data-lang="cpp">
+    <pre class="code cpp"><code><span class="tk-c">// C++17. Bucketed sliding-window error rate.</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;atomic&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;cstdint&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;mutex&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;stdexcept&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;vector&gt;</span>
+
+<span class="tk-k">class</span> <span class="tk-t">ErrorRateWindow</span> {
+    <span class="tk-k">struct</span> <span class="tk-t">Bucket</span> {
+        <span class="tk-k">int64_t</span> epochSec = <span class="tk-n">-1</span>;
+        <span class="tk-k">int64_t</span> total = <span class="tk-n">0</span>;
+        <span class="tk-k">int64_t</span> errors = <span class="tk-n">0</span>;
+    };
+
+    <span class="tk-k">int</span> windowSec_;
+    <span class="tk-t">std::vector</span>&lt;<span class="tk-t">Bucket</span>&gt; buckets_;
+    <span class="tk-t">std::mutex</span> mu_;
+
+<span class="tk-k">public:</span>
+    <span class="tk-k">explicit</span> <span class="tk-t">ErrorRateWindow</span>(<span class="tk-k">int</span> windowSec)
+        : windowSec_(windowSec), buckets_(windowSec) {
+        <span class="tk-k">if</span> (windowSec &lt;= <span class="tk-n">0</span>) <span class="tk-k">throw</span> <span class="tk-t">std::invalid_argument</span>(<span class="tk-s">"windowSec"</span>);
+    }
+
+    <span class="tk-k">void</span> <span class="tk-n">record</span>(<span class="tk-k">int64_t</span> tsMillis, <span class="tk-k">int</span> status) {
+        <span class="tk-k">int64_t</span> sec = tsMillis / <span class="tk-n">1000</span>;
+        <span class="tk-c">// Positive modulo even for negative timestamps</span>
+        <span class="tk-k">int</span> idx = <span class="tk-k">static_cast</span>&lt;<span class="tk-k">int</span>&gt;(((sec % windowSec_) + windowSec_) % windowSec_);
+        <span class="tk-k">bool</span> isError = status &gt;= <span class="tk-n">400</span>;
+
+        <span class="tk-t">std::lock_guard</span>&lt;<span class="tk-t">std::mutex</span>&gt; lock(mu_);
+        <span class="tk-k">auto</span>&amp; b = buckets_[idx];
+        <span class="tk-k">if</span> (b.epochSec != sec) {
+            b = {sec, <span class="tk-n">1</span>, isError ? <span class="tk-n">1</span> : <span class="tk-n">0</span>};
+        } <span class="tk-k">else</span> {
+            b.total++;
+            <span class="tk-k">if</span> (isError) b.errors++;
+        }
+    }
+
+    <span class="tk-k">double</span> <span class="tk-n">errorRate</span>(<span class="tk-k">int64_t</span> nowMillis) {
+        <span class="tk-k">int64_t</span> nowSec = nowMillis / <span class="tk-n">1000</span>;
+        <span class="tk-k">int64_t</span> oldest = nowSec - windowSec_ + <span class="tk-n">1</span>;
+        <span class="tk-k">int64_t</span> total = <span class="tk-n">0</span>, errors = <span class="tk-n">0</span>;
+
+        <span class="tk-t">std::lock_guard</span>&lt;<span class="tk-t">std::mutex</span>&gt; lock(mu_);
+        <span class="tk-k">for</span> (<span class="tk-k">auto</span>&amp; b : buckets_) {
+            <span class="tk-k">if</span> (b.epochSec &gt;= oldest &amp;&amp; b.epochSec &lt;= nowSec) {
+                total += b.total;
+                errors += b.errors;
+            }
+        }
+        <span class="tk-k">return</span> total == <span class="tk-n">0</span> ? <span class="tk-n">0.0</span> : <span class="tk-k">static_cast</span>&lt;<span class="tk-k">double</span>&gt;(errors) / total;
+    }
+};</code></pre>
+  </div>
+</div>
 
         <div class="discussion">
           <div class="label-row">▸ Discussion / Follow-ups</div>
@@ -806,7 +990,13 @@
     <div class="problem-body">
       <div class="label">Solution</div>
       <div class="content">
-<pre class="code"><code><span class="tk-k">import</span> java.util.*;
+<div class="lang-tabs">
+  <button class="lang-tab active" data-lang="java">Java</button>
+  <button class="lang-tab" data-lang="cpp">C++</button>
+</div>
+<div class="lang-panels">
+  <div class="lang-panel active" data-lang="java">
+    <pre class="code"><code><span class="tk-k">import</span> java.util.*;
 <span class="tk-k">import</span> java.util.concurrent.locks.*;
 
 <span class="tk-k">public class</span> <span class="tk-t">LruCache</span>&lt;<span class="tk-t">K</span>, <span class="tk-t">V</span>&gt; {
@@ -878,6 +1068,71 @@
     <span class="tk-k">private void</span> <span class="tk-n">moveToFront</span>(<span class="tk-t">Node</span>&lt;<span class="tk-t">K</span>, <span class="tk-t">V</span>&gt; n) { unlink(n); addToFront(n); }
     <span class="tk-k">private void</span> <span class="tk-n">evict</span>(<span class="tk-t">Node</span>&lt;<span class="tk-t">K</span>, <span class="tk-t">V</span>&gt; n) { unlink(n); map.<span class="tk-n">remove</span>(n.key); }
 }</code></pre>
+  </div>
+  <div class="lang-panel" data-lang="cpp">
+    <pre class="code cpp"><code><span class="tk-c">// C++17. Thread-safe LRU cache with optional TTL.</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;chrono&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;list&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;mutex&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;optional&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;unordered_map&gt;</span>
+
+<span class="tk-k">template</span> &lt;<span class="tk-k">class</span> <span class="tk-t">K</span>, <span class="tk-k">class</span> <span class="tk-t">V</span>&gt;
+<span class="tk-k">class</span> <span class="tk-t">LruCache</span> {
+    <span class="tk-k">struct</span> <span class="tk-t">Entry</span> {
+        <span class="tk-t">K</span> key;
+        <span class="tk-t">V</span> value;
+        <span class="tk-t">std::chrono::steady_clock::time_point</span> expiresAt;
+    };
+    <span class="tk-k">using</span> <span class="tk-t">It</span> = <span class="tk-k">typename</span> <span class="tk-t">std::list</span>&lt;<span class="tk-t">Entry</span>&gt;::<span class="tk-t">iterator</span>;
+
+    <span class="tk-k">size_t</span> capacity_;
+    <span class="tk-t">std::list</span>&lt;<span class="tk-t">Entry</span>&gt; lru_;            <span class="tk-c">// front = MRU, back = LRU</span>
+    <span class="tk-t">std::unordered_map</span>&lt;<span class="tk-t">K</span>, <span class="tk-t">It</span>&gt; map_;
+    <span class="tk-t">std::mutex</span> mu_;
+
+<span class="tk-k">public:</span>
+    <span class="tk-k">explicit</span> <span class="tk-t">LruCache</span>(<span class="tk-k">size_t</span> capacity) : capacity_(capacity) {
+        <span class="tk-k">if</span> (capacity == <span class="tk-n">0</span>) <span class="tk-k">throw</span> <span class="tk-t">std::invalid_argument</span>(<span class="tk-s">"capacity"</span>);
+    }
+
+    <span class="tk-t">std::optional</span>&lt;<span class="tk-t">V</span>&gt; <span class="tk-n">get</span>(<span class="tk-k">const</span> <span class="tk-t">K</span>&amp; key) {
+        <span class="tk-t">std::lock_guard</span>&lt;<span class="tk-t">std::mutex</span>&gt; lock(mu_);
+        <span class="tk-k">auto</span> it = map_.<span class="tk-n">find</span>(key);
+        <span class="tk-k">if</span> (it == map_.<span class="tk-n">end</span>()) <span class="tk-k">return</span> <span class="tk-t">std::nullopt</span>;
+        <span class="tk-k">if</span> (<span class="tk-t">std::chrono::steady_clock::now</span>() &gt;= it-&gt;<span class="tk-n">second</span>-&gt;<span class="tk-n">expiresAt</span>) {
+            lru_.<span class="tk-n">erase</span>(it-&gt;<span class="tk-n">second</span>);
+            map_.<span class="tk-n">erase</span>(it);
+            <span class="tk-k">return</span> <span class="tk-t">std::nullopt</span>;
+        }
+        lru_.<span class="tk-n">splice</span>(lru_.<span class="tk-n">begin</span>(), lru_, it-&gt;<span class="tk-n">second</span>);
+        <span class="tk-k">return</span> it-&gt;<span class="tk-n">second</span>-&gt;<span class="tk-n">value</span>;
+    }
+
+    <span class="tk-k">void</span> <span class="tk-n">put</span>(<span class="tk-t">K</span> key, <span class="tk-t">V</span> value,
+             <span class="tk-t">std::chrono::milliseconds</span> ttl = <span class="tk-t">std::chrono::milliseconds::max</span>()) {
+        <span class="tk-k">auto</span> expiresAt = (ttl == <span class="tk-t">std::chrono::milliseconds::max</span>())
+            ? <span class="tk-t">std::chrono::steady_clock::time_point::max</span>()
+            : <span class="tk-t">std::chrono::steady_clock::now</span>() + ttl;
+
+        <span class="tk-t">std::lock_guard</span>&lt;<span class="tk-t">std::mutex</span>&gt; lock(mu_);
+        <span class="tk-k">auto</span> it = map_.<span class="tk-n">find</span>(key);
+        <span class="tk-k">if</span> (it != map_.<span class="tk-n">end</span>()) {
+            it-&gt;<span class="tk-n">second</span>-&gt;<span class="tk-n">value</span> = <span class="tk-t">std::move</span>(value);
+            it-&gt;<span class="tk-n">second</span>-&gt;<span class="tk-n">expiresAt</span> = expiresAt;
+            lru_.<span class="tk-n">splice</span>(lru_.<span class="tk-n">begin</span>(), lru_, it-&gt;<span class="tk-n">second</span>);
+            <span class="tk-k">return</span>;
+        }
+        lru_.<span class="tk-n">push_front</span>({key, <span class="tk-t">std::move</span>(value), expiresAt});
+        map_[<span class="tk-t">std::move</span>(key)] = lru_.<span class="tk-n">begin</span>();
+        <span class="tk-k">if</span> (map_.<span class="tk-n">size</span>() &gt; capacity_) {
+            map_.<span class="tk-n">erase</span>(lru_.<span class="tk-n">back</span>().<span class="tk-n">key</span>);
+            lru_.<span class="tk-n">pop_back</span>();
+        }
+    }
+};</code></pre>
+  </div>
+</div>
 
         <div class="discussion">
           <div class="label-row">▸ Discussion / Follow-ups</div>
@@ -939,7 +1194,13 @@
     <div class="problem-body">
       <div class="label">Solution</div>
       <div class="content">
-<pre class="code"><code><span class="tk-k">import</span> java.util.concurrent.*;
+<div class="lang-tabs">
+  <button class="lang-tab active" data-lang="java">Java</button>
+  <button class="lang-tab" data-lang="cpp">C++</button>
+</div>
+<div class="lang-panels">
+  <div class="lang-panel active" data-lang="java">
+    <pre class="code"><code><span class="tk-k">import</span> java.util.concurrent.*;
 
 <span class="tk-k">public class</span> <span class="tk-t">TokenBucketLimiter</span> {
 
@@ -987,6 +1248,72 @@
         }
     }
 }</code></pre>
+  </div>
+  <div class="lang-panel" data-lang="cpp">
+    <pre class="code cpp"><code><span class="tk-c">// C++17. Per-user token bucket rate limiter.</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;chrono&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;memory&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;mutex&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;shared_mutex&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;string&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;unordered_map&gt;</span>
+
+<span class="tk-k">class</span> <span class="tk-t">TokenBucketLimiter</span> {
+    <span class="tk-k">struct</span> <span class="tk-t">Bucket</span> {
+        <span class="tk-k">double</span> tokens;
+        <span class="tk-k">int64_t</span> lastRefillNanos;
+        <span class="tk-t">std::mutex</span> mu;
+        <span class="tk-t">Bucket</span>(<span class="tk-k">double</span> t, <span class="tk-k">int64_t</span> n) : tokens(t), lastRefillNanos(n) {}
+    };
+
+    <span class="tk-k">double</span> capacity_;
+    <span class="tk-k">double</span> refillPerNano_;
+    <span class="tk-t">std::shared_mutex</span> mapMu_;
+    <span class="tk-t">std::unordered_map</span>&lt;<span class="tk-t">std::string</span>, <span class="tk-t">std::shared_ptr</span>&lt;<span class="tk-t">Bucket</span>&gt;&gt; buckets_;
+
+    <span class="tk-k">static int64_t</span> <span class="tk-n">nowNanos</span>() {
+        <span class="tk-k">return</span> <span class="tk-t">std::chrono::duration_cast</span>&lt;<span class="tk-t">std::chrono::nanoseconds</span>&gt;(
+            <span class="tk-t">std::chrono::steady_clock::now</span>().<span class="tk-n">time_since_epoch</span>()).<span class="tk-n">count</span>();
+    }
+
+<span class="tk-k">public:</span>
+    <span class="tk-t">TokenBucketLimiter</span>(<span class="tk-k">double</span> capacity, <span class="tk-k">double</span> refillPerSecond)
+        : capacity_(capacity),
+          refillPerNano_(refillPerSecond / <span class="tk-n">1e9</span>) {
+        <span class="tk-k">if</span> (capacity &lt;= <span class="tk-n">0</span> || refillPerSecond &lt;= <span class="tk-n">0</span>)
+            <span class="tk-k">throw</span> <span class="tk-t">std::invalid_argument</span>(<span class="tk-s">"args"</span>);
+    }
+
+    <span class="tk-k">bool</span> <span class="tk-n">tryAcquire</span>(<span class="tk-k">const</span> <span class="tk-t">std::string</span>&amp; userId, <span class="tk-k">double</span> permits = <span class="tk-n">1.0</span>) {
+        <span class="tk-t">std::shared_ptr</span>&lt;<span class="tk-t">Bucket</span>&gt; b;
+        {
+            <span class="tk-t">std::shared_lock</span>&lt;<span class="tk-t">std::shared_mutex</span>&gt; rd(mapMu_);
+            <span class="tk-k">auto</span> it = buckets_.<span class="tk-n">find</span>(userId);
+            <span class="tk-k">if</span> (it != buckets_.<span class="tk-n">end</span>()) b = it-&gt;<span class="tk-n">second</span>;
+        }
+        <span class="tk-k">if</span> (!b) {
+            <span class="tk-t">std::unique_lock</span>&lt;<span class="tk-t">std::shared_mutex</span>&gt; wr(mapMu_);
+            <span class="tk-k">auto</span>&amp; slot = buckets_[userId];
+            <span class="tk-k">if</span> (!slot) slot = <span class="tk-t">std::make_shared</span>&lt;<span class="tk-t">Bucket</span>&gt;(capacity_, nowNanos());
+            b = slot;
+        }
+
+        <span class="tk-t">std::lock_guard</span>&lt;<span class="tk-t">std::mutex</span>&gt; lock(b-&gt;<span class="tk-n">mu</span>);
+        <span class="tk-k">int64_t</span> now = nowNanos();
+        <span class="tk-k">int64_t</span> elapsed = now - b-&gt;<span class="tk-n">lastRefillNanos</span>;
+        <span class="tk-k">if</span> (elapsed &gt; <span class="tk-n">0</span>) {
+            b-&gt;<span class="tk-n">tokens</span> = <span class="tk-t">std::min</span>(capacity_, b-&gt;<span class="tk-n">tokens</span> + elapsed * refillPerNano_);
+            b-&gt;<span class="tk-n">lastRefillNanos</span> = now;
+        }
+        <span class="tk-k">if</span> (b-&gt;<span class="tk-n">tokens</span> &gt;= permits) {
+            b-&gt;<span class="tk-n">tokens</span> -= permits;
+            <span class="tk-k">return true</span>;
+        }
+        <span class="tk-k">return false</span>;
+    }
+};</code></pre>
+  </div>
+</div>
 
         <div class="discussion">
           <div class="label-row">▸ Discussion / Follow-ups</div>
@@ -1050,7 +1377,13 @@
     <div class="problem-body">
       <div class="label">Solution</div>
       <div class="content">
-<pre class="code"><code><span class="tk-k">import</span> java.time.*;
+<div class="lang-tabs">
+  <button class="lang-tab active" data-lang="java">Java</button>
+  <button class="lang-tab" data-lang="cpp">C++</button>
+</div>
+<div class="lang-panels">
+  <div class="lang-panel active" data-lang="java">
+    <pre class="code"><code><span class="tk-k">import</span> java.time.*;
 <span class="tk-k">import</span> java.util.concurrent.*;
 <span class="tk-k">import</span> java.util.function.*;
 
@@ -1106,6 +1439,63 @@
         <span class="tk-t">Thread</span>.<span class="tk-n">sleep</span>(sleep);
     }
 }</code></pre>
+  </div>
+  <div class="lang-panel" data-lang="cpp">
+    <pre class="code cpp"><code><span class="tk-c">// C++17. Retry with exponential backoff + full jitter.</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;chrono&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;exception&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;functional&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;random&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;stdexcept&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;thread&gt;</span>
+
+<span class="tk-k">struct</span> <span class="tk-t">RetryPolicy</span> {
+    <span class="tk-k">int</span> maxAttempts;
+    <span class="tk-t">std::chrono::milliseconds</span> baseDelay;
+    <span class="tk-t">std::chrono::milliseconds</span> maxDelay;
+    <span class="tk-t">std::function</span>&lt;<span class="tk-k">bool</span>(<span class="tk-k">const</span> <span class="tk-t">std::exception</span>&amp;)&gt; isRetriable;
+
+    <span class="tk-k">static</span> <span class="tk-t">RetryPolicy</span> <span class="tk-n">defaults</span>() {
+        <span class="tk-k">return</span> {<span class="tk-n">3</span>,
+                <span class="tk-t">std::chrono::milliseconds</span>(<span class="tk-n">100</span>),
+                <span class="tk-t">std::chrono::seconds</span>(<span class="tk-n">10</span>),
+                [](<span class="tk-k">const</span> <span class="tk-t">std::exception</span>&amp;) { <span class="tk-k">return true</span>; }};
+    }
+};
+
+<span class="tk-k">class</span> <span class="tk-t">RetryExhausted</span> : <span class="tk-k">public</span> <span class="tk-t">std::runtime_error</span> {
+<span class="tk-k">public:</span>
+    <span class="tk-t">std::exception_ptr</span> last;
+    <span class="tk-t">RetryExhausted</span>(<span class="tk-k">const</span> <span class="tk-t">std::string</span>&amp; m, <span class="tk-t">std::exception_ptr</span> e)
+        : <span class="tk-t">std::runtime_error</span>(m), last(e) {}
+};
+
+<span class="tk-k">template</span> &lt;<span class="tk-k">class</span> <span class="tk-t">F</span>&gt;
+<span class="tk-k">auto</span> <span class="tk-n">executeWithRetry</span>(<span class="tk-t">F</span>&amp;&amp; op, <span class="tk-k">const</span> <span class="tk-t">RetryPolicy</span>&amp; policy)
+        -&gt; <span class="tk-k">decltype</span>(op()) {
+    <span class="tk-t">std::exception_ptr</span> last;
+    <span class="tk-t">std::mt19937_64</span> rng(<span class="tk-t">std::random_device</span>{}());
+
+    <span class="tk-k">for</span> (<span class="tk-k">int</span> attempt = <span class="tk-n">0</span>; attempt &lt; policy.maxAttempts; ++attempt) {
+        <span class="tk-k">try</span> {
+            <span class="tk-k">return</span> op();
+        } <span class="tk-k">catch</span> (<span class="tk-k">const</span> <span class="tk-t">std::exception</span>&amp; e) {
+            <span class="tk-k">if</span> (!policy.isRetriable(e)) <span class="tk-k">throw</span>;
+            last = <span class="tk-t">std::current_exception</span>();
+            <span class="tk-k">if</span> (attempt == policy.maxAttempts - <span class="tk-n">1</span>) <span class="tk-k">break</span>;
+
+            <span class="tk-c">// Full jitter: uniform in [0, min(maxDelay, base * 2^attempt)]</span>
+            <span class="tk-k">int64_t</span> shift = <span class="tk-t">std::min</span>(<span class="tk-n">62</span>, attempt);   <span class="tk-c">// guard overflow</span>
+            <span class="tk-k">int64_t</span> exp = <span class="tk-t">std::min</span>(policy.maxDelay.<span class="tk-n">count</span>(),
+                                  policy.baseDelay.<span class="tk-n">count</span>() * (<span class="tk-n">1LL</span> &lt;&lt; shift));
+            <span class="tk-t">std::uniform_int_distribution</span>&lt;<span class="tk-k">int64_t</span>&gt; dist(<span class="tk-n">0</span>, exp);
+            <span class="tk-t">std::this_thread::sleep_for</span>(<span class="tk-t">std::chrono::milliseconds</span>(dist(rng)));
+        }
+    }
+    <span class="tk-k">throw</span> <span class="tk-t">RetryExhausted</span>(<span class="tk-s">"giving up"</span>, last);
+}</code></pre>
+  </div>
+</div>
 
         <div class="discussion">
           <div class="label-row">▸ Discussion / Follow-ups</div>
@@ -1169,7 +1559,13 @@
     <div class="problem-body">
       <div class="label">Solution</div>
       <div class="content">
-<pre class="code"><code><span class="tk-k">import</span> java.io.*;
+<div class="lang-tabs">
+  <button class="lang-tab active" data-lang="java">Java</button>
+  <button class="lang-tab" data-lang="cpp">C++</button>
+</div>
+<div class="lang-panels">
+  <div class="lang-panel active" data-lang="java">
+    <pre class="code"><code><span class="tk-k">import</span> java.io.*;
 <span class="tk-k">import</span> java.nio.file.*;
 <span class="tk-k">import</span> java.time.*;
 <span class="tk-k">import</span> java.time.format.*;
@@ -1257,6 +1653,91 @@
             : s;
     }
 }</code></pre>
+  </div>
+  <div class="lang-panel" data-lang="cpp">
+    <pre class="code cpp"><code><span class="tk-c">// C++17. CSV dedup &amp; merge: latest-wins on id-or-email collision.</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;algorithm&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;chrono&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;cctype&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;fstream&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;iomanip&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;memory&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;optional&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;sstream&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;string&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;unordered_map&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;unordered_set&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;vector&gt;</span>
+
+<span class="tk-k">struct</span> <span class="tk-t">Customer</span> {
+    <span class="tk-t">std::string</span> id, email, name, ts;     <span class="tk-c">// ts as ISO-8601 string</span>
+    <span class="tk-t">std::string</span> <span class="tk-n">normalizedEmail</span>() <span class="tk-k">const</span> {
+        <span class="tk-t">std::string</span> e = email;
+        <span class="tk-t">std::transform</span>(e.<span class="tk-n">begin</span>(), e.<span class="tk-n">end</span>(), e.<span class="tk-n">begin</span>(),
+                       [](<span class="tk-k">unsigned char</span> c) { <span class="tk-k">return</span> <span class="tk-t">std::tolower</span>(c); });
+        <span class="tk-c">// trim</span>
+        <span class="tk-k">auto</span> a = e.<span class="tk-n">find_first_not_of</span>(<span class="tk-s">" \t"</span>);
+        <span class="tk-k">auto</span> b = e.<span class="tk-n">find_last_not_of</span>(<span class="tk-s">" \t"</span>);
+        <span class="tk-k">return</span> a == <span class="tk-t">std::string::npos</span> ? <span class="tk-s">""</span> : e.<span class="tk-n">substr</span>(a, b - a + <span class="tk-n">1</span>);
+    }
+};
+
+<span class="tk-c">// ISO-8601 lex order is chronological order; string &gt; works.</span>
+<span class="tk-k">static</span> <span class="tk-t">std::shared_ptr</span>&lt;<span class="tk-t">Customer</span>&gt; <span class="tk-n">parseRow</span>(<span class="tk-k">const</span> <span class="tk-t">std::string</span>&amp; line) {
+    <span class="tk-t">std::vector</span>&lt;<span class="tk-t">std::string</span>&gt; f;
+    <span class="tk-t">std::stringstream</span> ss(line);
+    <span class="tk-t">std::string</span> tok;
+    <span class="tk-k">while</span> (<span class="tk-t">std::getline</span>(ss, tok, <span class="tk-s">','</span>)) f.<span class="tk-n">push_back</span>(tok);
+    <span class="tk-k">if</span> (f.<span class="tk-n">size</span>() != <span class="tk-n">4</span> || f[<span class="tk-n">0</span>].<span class="tk-n">empty</span>() || f[<span class="tk-n">1</span>].<span class="tk-n">empty</span>() || f[<span class="tk-n">3</span>].<span class="tk-n">empty</span>())
+        <span class="tk-k">return</span> <span class="tk-k">nullptr</span>;
+    <span class="tk-k">return</span> <span class="tk-t">std::make_shared</span>&lt;<span class="tk-t">Customer</span>&gt;(<span class="tk-t">Customer</span>{f[<span class="tk-n">0</span>], f[<span class="tk-n">1</span>], f[<span class="tk-n">2</span>], f[<span class="tk-n">3</span>]});
+}
+
+<span class="tk-k">void</span> <span class="tk-n">mergeCsvs</span>(<span class="tk-k">const</span> <span class="tk-t">std::string</span>&amp; a, <span class="tk-k">const</span> <span class="tk-t">std::string</span>&amp; b,
+               <span class="tk-k">const</span> <span class="tk-t">std::string</span>&amp; outPath) {
+    <span class="tk-k">using</span> <span class="tk-t">CPtr</span> = <span class="tk-t">std::shared_ptr</span>&lt;<span class="tk-t">Customer</span>&gt;;
+    <span class="tk-t">std::unordered_map</span>&lt;<span class="tk-t">std::string</span>, <span class="tk-t">CPtr</span>&gt; byId, byEmail;
+    <span class="tk-k">int64_t</span> rejected = <span class="tk-n">0</span>;
+
+    <span class="tk-k">for</span> (<span class="tk-k">const</span> <span class="tk-k">auto</span>&amp; path : {a, b}) {
+        <span class="tk-t">std::ifstream</span> in(path);
+        <span class="tk-t">std::string</span> line;
+        <span class="tk-t">std::getline</span>(in, line);                 <span class="tk-c">// skip header</span>
+        <span class="tk-k">while</span> (<span class="tk-t">std::getline</span>(in, line)) {
+            <span class="tk-k">auto</span> c = parseRow(line);
+            <span class="tk-k">if</span> (!c) { ++rejected; <span class="tk-k">continue</span>; }
+
+            <span class="tk-k">auto</span> mIt = byId.<span class="tk-n">find</span>(c-&gt;<span class="tk-n">id</span>);
+            <span class="tk-k">auto</span> eIt = byEmail.<span class="tk-n">find</span>(c-&gt;<span class="tk-n">normalizedEmail</span>());
+            <span class="tk-t">CPtr</span> winner = c;
+            <span class="tk-k">if</span> (mIt != byId.<span class="tk-n">end</span>() &amp;&amp; mIt-&gt;<span class="tk-n">second</span>-&gt;<span class="tk-n">ts</span> &gt; winner-&gt;<span class="tk-n">ts</span>) winner = mIt-&gt;<span class="tk-n">second</span>;
+            <span class="tk-k">if</span> (eIt != byEmail.<span class="tk-n">end</span>() &amp;&amp; eIt-&gt;<span class="tk-n">second</span>-&gt;<span class="tk-n">ts</span> &gt; winner-&gt;<span class="tk-n">ts</span>) winner = eIt-&gt;<span class="tk-n">second</span>;
+
+            <span class="tk-c">// Evict losers from the opposite index, then install winner</span>
+            <span class="tk-k">if</span> (mIt != byId.<span class="tk-n">end</span>() &amp;&amp; mIt-&gt;<span class="tk-n">second</span> != winner)
+                byEmail.<span class="tk-n">erase</span>(mIt-&gt;<span class="tk-n">second</span>-&gt;<span class="tk-n">normalizedEmail</span>());
+            <span class="tk-k">if</span> (eIt != byEmail.<span class="tk-n">end</span>() &amp;&amp; eIt-&gt;<span class="tk-n">second</span> != winner)
+                byId.<span class="tk-n">erase</span>(eIt-&gt;<span class="tk-n">second</span>-&gt;<span class="tk-n">id</span>);
+            byId[winner-&gt;<span class="tk-n">id</span>] = winner;
+            byEmail[winner-&gt;<span class="tk-n">normalizedEmail</span>()] = winner;
+        }
+    }
+
+    <span class="tk-c">// Unique by pointer identity</span>
+    <span class="tk-t">std::unordered_set</span>&lt;<span class="tk-t">Customer</span>*&gt; seen;
+    <span class="tk-t">std::ofstream</span> out(outPath);
+    out &lt;&lt; <span class="tk-s">"id,email,name,updated_at\n"</span>;
+    <span class="tk-k">auto</span> dump = [&amp;](<span class="tk-k">const</span> <span class="tk-k">auto</span>&amp; m) {
+        <span class="tk-k">for</span> (<span class="tk-k">auto</span>&amp; [_, c] : m)
+            <span class="tk-k">if</span> (seen.<span class="tk-n">insert</span>(c.<span class="tk-n">get</span>()).<span class="tk-n">second</span>)
+                out &lt;&lt; c-&gt;<span class="tk-n">id</span> &lt;&lt; <span class="tk-s">','</span> &lt;&lt; c-&gt;<span class="tk-n">email</span> &lt;&lt; <span class="tk-s">','</span>
+                    &lt;&lt; c-&gt;<span class="tk-n">name</span> &lt;&lt; <span class="tk-s">','</span> &lt;&lt; c-&gt;<span class="tk-n">ts</span> &lt;&lt; <span class="tk-s">'\n'</span>;
+    };
+    dump(byId); dump(byEmail);
+    <span class="tk-t">std::cerr</span> &lt;&lt; <span class="tk-s">"merged: "</span> &lt;&lt; seen.<span class="tk-n">size</span>() &lt;&lt; <span class="tk-s">", rejected: "</span> &lt;&lt; rejected &lt;&lt; <span class="tk-s">'\n'</span>;
+}</code></pre>
+  </div>
+</div>
 
         <div class="discussion">
           <div class="label-row">▸ Discussion / Follow-ups</div>
@@ -1319,7 +1800,13 @@
     <div class="problem-body">
       <div class="label">Solution</div>
       <div class="content">
-<pre class="code"><code><span class="tk-k">import</span> com.fasterxml.jackson.core.*;
+<div class="lang-tabs">
+  <button class="lang-tab active" data-lang="java">Java</button>
+  <button class="lang-tab" data-lang="cpp">C++</button>
+</div>
+<div class="lang-panels">
+  <div class="lang-panel active" data-lang="java">
+    <pre class="code"><code><span class="tk-k">import</span> com.fasterxml.jackson.core.*;
 <span class="tk-k">import</span> com.fasterxml.jackson.databind.*;
 <span class="tk-k">import</span> java.io.*;
 <span class="tk-k">import</span> java.math.*;
@@ -1396,6 +1883,59 @@
         out.<span class="tk-n">computeIfAbsent</span>(userId, k -&gt; <span class="tk-k">new</span> <span class="tk-t">UserAgg</span>()).<span class="tk-n">add</span>(usd, ts);
     }
 }</code></pre>
+  </div>
+  <div class="lang-panel" data-lang="cpp">
+    <pre class="code cpp"><code><span class="tk-c">// C++17. Streaming JSON-Lines aggregator.</span>
+<span class="tk-c">// Uses nlohmann::json (#include &lt;nlohmann/json.hpp&gt;) per line --</span>
+<span class="tk-c">// for true streaming over a giant file you'd swap in simdjson's</span>
+<span class="tk-c">// document stream or RapidJSON's SAX parser.</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;fstream&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;iostream&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;nlohmann/json.hpp&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;string&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;unordered_map&gt;</span>
+
+<span class="tk-k">using</span> <span class="tk-t">json</span> = <span class="tk-t">nlohmann::json</span>;
+
+<span class="tk-k">struct</span> <span class="tk-t">UserAgg</span> {
+    <span class="tk-k">int64_t</span> count = <span class="tk-n">0</span>;
+    <span class="tk-k">double</span> totalUsd = <span class="tk-n">0.0</span>;        <span class="tk-c">// In production use a fixed-point money type</span>
+    <span class="tk-t">std::string</span> lastTs;            <span class="tk-c">// ISO-8601 string</span>
+};
+
+<span class="tk-t">std::unordered_map</span>&lt;<span class="tk-t">std::string</span>, <span class="tk-t">UserAgg</span>&gt;
+<span class="tk-n">aggregate</span>(<span class="tk-k">const</span> <span class="tk-t">std::string</span>&amp; path,
+          <span class="tk-k">const</span> <span class="tk-t">std::unordered_map</span>&lt;<span class="tk-t">std::string</span>, <span class="tk-k">double</span>&gt;&amp; fxToUsd) {
+    <span class="tk-t">std::unordered_map</span>&lt;<span class="tk-t">std::string</span>, <span class="tk-t">UserAgg</span>&gt; out;
+    <span class="tk-t">std::ifstream</span> in(path);
+    <span class="tk-t">std::string</span> line;
+    <span class="tk-k">int64_t</span> bad = <span class="tk-n">0</span>;
+
+    <span class="tk-k">while</span> (<span class="tk-t">std::getline</span>(in, line)) {
+        <span class="tk-k">if</span> (line.<span class="tk-n">empty</span>()) <span class="tk-k">continue</span>;
+        <span class="tk-k">try</span> {
+            <span class="tk-k">auto</span> j = <span class="tk-t">json::parse</span>(line);
+            <span class="tk-k">auto</span> userId = j.<span class="tk-n">at</span>(<span class="tk-s">"user_id"</span>).<span class="tk-n">get</span>&lt;<span class="tk-t">std::string</span>&gt;();
+            <span class="tk-k">auto</span> currency = j.<span class="tk-n">at</span>(<span class="tk-s">"currency"</span>).<span class="tk-n">get</span>&lt;<span class="tk-t">std::string</span>&gt;();
+            <span class="tk-k">auto</span> amount = j.<span class="tk-n">at</span>(<span class="tk-s">"amount"</span>).<span class="tk-n">get</span>&lt;<span class="tk-k">double</span>&gt;();
+            <span class="tk-k">auto</span> ts = j.<span class="tk-n">at</span>(<span class="tk-s">"ts"</span>).<span class="tk-n">get</span>&lt;<span class="tk-t">std::string</span>&gt;();
+
+            <span class="tk-k">auto</span> rateIt = fxToUsd.<span class="tk-n">find</span>(currency);
+            <span class="tk-k">if</span> (rateIt == fxToUsd.<span class="tk-n">end</span>()) { ++bad; <span class="tk-k">continue</span>; }
+
+            <span class="tk-k">auto</span>&amp; agg = out[userId];
+            agg.count++;
+            agg.totalUsd += amount * rateIt-&gt;<span class="tk-n">second</span>;
+            <span class="tk-k">if</span> (ts &gt; agg.lastTs) agg.lastTs = ts;
+        } <span class="tk-k">catch</span> (...) {
+            ++bad;
+        }
+    }
+    <span class="tk-k">if</span> (bad) <span class="tk-t">std::cerr</span> &lt;&lt; <span class="tk-s">"skipped "</span> &lt;&lt; bad &lt;&lt; <span class="tk-s">" bad lines\n"</span>;
+    <span class="tk-k">return</span> out;
+}</code></pre>
+  </div>
+</div>
 
         <div class="discussion">
           <div class="label-row">▸ Discussion / Follow-ups</div>
@@ -1458,7 +1998,13 @@
     <div class="problem-body">
       <div class="label">Solution</div>
       <div class="content">
-<pre class="code"><code><span class="tk-k">import</span> java.util.*;
+<div class="lang-tabs">
+  <button class="lang-tab active" data-lang="java">Java</button>
+  <button class="lang-tab" data-lang="cpp">C++</button>
+</div>
+<div class="lang-panels">
+  <div class="lang-panel active" data-lang="java">
+    <pre class="code"><code><span class="tk-k">import</span> java.util.*;
 <span class="tk-k">import</span> java.util.function.*;
 
 <span class="tk-k">public class</span> <span class="tk-t">Router</span>&lt;<span class="tk-t">H</span>&gt; {
@@ -1551,6 +2097,111 @@
         <span class="tk-k">return</span> p.<span class="tk-n">split</span>(<span class="tk-s">"/"</span>);
     }
 }</code></pre>
+  </div>
+  <div class="lang-panel" data-lang="cpp">
+    <pre class="code cpp"><code><span class="tk-c">// C++17. Trie-based HTTP route matcher with sealed-style result.</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;memory&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;optional&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;sstream&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;string&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;unordered_map&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;unordered_set&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;variant&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;vector&gt;</span>
+
+<span class="tk-k">template</span> &lt;<span class="tk-k">class</span> <span class="tk-t">H</span>&gt;
+<span class="tk-k">class</span> <span class="tk-t">Router</span> {
+<span class="tk-k">public:</span>
+    <span class="tk-k">struct</span> <span class="tk-t">Match</span> { <span class="tk-t">H</span> handler; <span class="tk-t">std::unordered_map</span>&lt;<span class="tk-t">std::string</span>, <span class="tk-t">std::string</span>&gt; params; };
+    <span class="tk-k">struct</span> <span class="tk-t">MethodNotAllowed</span> { <span class="tk-t">std::unordered_set</span>&lt;<span class="tk-t">std::string</span>&gt; allowed; };
+    <span class="tk-k">struct</span> <span class="tk-t">NotFound</span> {};
+    <span class="tk-k">using</span> <span class="tk-t">Resolution</span> = <span class="tk-t">std::variant</span>&lt;<span class="tk-t">Match</span>, <span class="tk-t">MethodNotAllowed</span>, <span class="tk-t">NotFound</span>&gt;;
+
+<span class="tk-k">private:</span>
+    <span class="tk-k">struct</span> <span class="tk-t">Node</span> {
+        <span class="tk-t">std::unordered_map</span>&lt;<span class="tk-t">std::string</span>, <span class="tk-t">std::unique_ptr</span>&lt;<span class="tk-t">Node</span>&gt;&gt; literal;
+        <span class="tk-t">std::string</span> paramName;
+        <span class="tk-t">std::unique_ptr</span>&lt;<span class="tk-t">Node</span>&gt; paramChild;
+        <span class="tk-t">std::optional</span>&lt;<span class="tk-t">std::unordered_map</span>&lt;<span class="tk-t">std::string</span>, <span class="tk-t">H</span>&gt;&gt; wildcard;
+        <span class="tk-t">std::unordered_map</span>&lt;<span class="tk-t">std::string</span>, <span class="tk-t">H</span>&gt; handlers;
+    };
+    <span class="tk-t">Node</span> root_;
+
+    <span class="tk-k">static</span> <span class="tk-t">std::vector</span>&lt;<span class="tk-t">std::string</span>&gt; <span class="tk-n">split</span>(<span class="tk-k">const</span> <span class="tk-t">std::string</span>&amp; path) {
+        <span class="tk-t">std::vector</span>&lt;<span class="tk-t">std::string</span>&gt; out;
+        <span class="tk-t">std::stringstream</span> ss(path[<span class="tk-n">0</span>] == <span class="tk-s">'/'</span> ? path.<span class="tk-n">substr</span>(<span class="tk-n">1</span>) : path);
+        <span class="tk-t">std::string</span> seg;
+        <span class="tk-k">while</span> (<span class="tk-t">std::getline</span>(ss, seg, <span class="tk-s">'/'</span>)) <span class="tk-k">if</span> (!seg.<span class="tk-n">empty</span>()) out.<span class="tk-n">push_back</span>(seg);
+        <span class="tk-k">return</span> out;
+    }
+
+    <span class="tk-t">Node</span>* <span class="tk-n">walk</span>(<span class="tk-t">Node</span>* node, <span class="tk-k">const</span> <span class="tk-t">std::vector</span>&lt;<span class="tk-t">std::string</span>&gt;&amp; segs, <span class="tk-k">size_t</span> i,
+               <span class="tk-t">std::unordered_map</span>&lt;<span class="tk-t">std::string</span>, <span class="tk-t">std::string</span>&gt;&amp; params) {
+        <span class="tk-k">if</span> (i == segs.<span class="tk-n">size</span>()) <span class="tk-k">return</span> node;
+
+        <span class="tk-k">auto</span> lit = node-&gt;<span class="tk-n">literal</span>.<span class="tk-n">find</span>(segs[i]);
+        <span class="tk-k">if</span> (lit != node-&gt;<span class="tk-n">literal</span>.<span class="tk-n">end</span>())
+            <span class="tk-k">if</span> (<span class="tk-k">auto</span>* r = walk(lit-&gt;<span class="tk-n">second</span>.<span class="tk-n">get</span>(), segs, i + <span class="tk-n">1</span>, params)) <span class="tk-k">return</span> r;
+
+        <span class="tk-k">if</span> (node-&gt;<span class="tk-n">paramChild</span>) {
+            params[node-&gt;<span class="tk-n">paramName</span>] = segs[i];
+            <span class="tk-k">if</span> (<span class="tk-k">auto</span>* r = walk(node-&gt;<span class="tk-n">paramChild</span>.<span class="tk-n">get</span>(), segs, i + <span class="tk-n">1</span>, params)) <span class="tk-k">return</span> r;
+            params.<span class="tk-n">erase</span>(node-&gt;<span class="tk-n">paramName</span>);
+        }
+        <span class="tk-k">if</span> (node-&gt;<span class="tk-n">wildcard</span>) {
+            <span class="tk-k">static thread_local</span> <span class="tk-t">Node</span> pseudo;
+            pseudo.handlers = *node-&gt;<span class="tk-n">wildcard</span>;
+            <span class="tk-k">return</span> &amp;pseudo;
+        }
+        <span class="tk-k">return</span> <span class="tk-k">nullptr</span>;
+    }
+
+<span class="tk-k">public:</span>
+    <span class="tk-k">void</span> <span class="tk-n">registerRoute</span>(<span class="tk-k">const</span> <span class="tk-t">std::string</span>&amp; method,
+                       <span class="tk-k">const</span> <span class="tk-t">std::string</span>&amp; pattern, <span class="tk-t">H</span> handler) {
+        <span class="tk-k">auto</span> segs = split(pattern);
+        <span class="tk-t">Node</span>* node = &amp;root_;
+        <span class="tk-k">for</span> (<span class="tk-k">size_t</span> i = <span class="tk-n">0</span>; i &lt; segs.<span class="tk-n">size</span>(); ++i) {
+            <span class="tk-k">const</span> <span class="tk-k">auto</span>&amp; s = segs[i];
+            <span class="tk-k">if</span> (s == <span class="tk-s">"*"</span>) {
+                <span class="tk-k">if</span> (i + <span class="tk-n">1</span> != segs.<span class="tk-n">size</span>())
+                    <span class="tk-k">throw</span> <span class="tk-t">std::invalid_argument</span>(<span class="tk-s">"* must be last"</span>);
+                <span class="tk-k">if</span> (!node-&gt;<span class="tk-n">wildcard</span>) node-&gt;<span class="tk-n">wildcard</span>.<span class="tk-n">emplace</span>();
+                (*node-&gt;<span class="tk-n">wildcard</span>)[method] = <span class="tk-t">std::move</span>(handler);
+                <span class="tk-k">return</span>;
+            }
+            <span class="tk-k">if</span> (s[<span class="tk-n">0</span>] == <span class="tk-s">':'</span>) {
+                <span class="tk-k">if</span> (!node-&gt;<span class="tk-n">paramChild</span>) {
+                    node-&gt;<span class="tk-n">paramChild</span> = <span class="tk-t">std::make_unique</span>&lt;<span class="tk-t">Node</span>&gt;();
+                    node-&gt;<span class="tk-n">paramName</span> = s.<span class="tk-n">substr</span>(<span class="tk-n">1</span>);
+                }
+                node = node-&gt;<span class="tk-n">paramChild</span>.<span class="tk-n">get</span>();
+            } <span class="tk-k">else</span> {
+                <span class="tk-k">auto</span>&amp; child = node-&gt;<span class="tk-n">literal</span>[s];
+                <span class="tk-k">if</span> (!child) child = <span class="tk-t">std::make_unique</span>&lt;<span class="tk-t">Node</span>&gt;();
+                node = child.<span class="tk-n">get</span>();
+            }
+        }
+        node-&gt;<span class="tk-n">handlers</span>[method] = <span class="tk-t">std::move</span>(handler);
+    }
+
+    <span class="tk-t">Resolution</span> <span class="tk-n">resolve</span>(<span class="tk-k">const</span> <span class="tk-t">std::string</span>&amp; method, <span class="tk-k">const</span> <span class="tk-t">std::string</span>&amp; path) {
+        <span class="tk-k">auto</span> segs = split(path);
+        <span class="tk-t">std::unordered_map</span>&lt;<span class="tk-t">std::string</span>, <span class="tk-t">std::string</span>&gt; params;
+        <span class="tk-t">Node</span>* m = walk(&amp;root_, segs, <span class="tk-n">0</span>, params);
+        <span class="tk-k">if</span> (!m) <span class="tk-k">return</span> <span class="tk-t">NotFound</span>{};
+        <span class="tk-k">auto</span> hIt = m-&gt;<span class="tk-n">handlers</span>.<span class="tk-n">find</span>(method);
+        <span class="tk-k">if</span> (hIt != m-&gt;<span class="tk-n">handlers</span>.<span class="tk-n">end</span>()) <span class="tk-k">return</span> <span class="tk-t">Match</span>{hIt-&gt;<span class="tk-n">second</span>, params};
+        <span class="tk-k">if</span> (!m-&gt;<span class="tk-n">handlers</span>.<span class="tk-n">empty</span>()) {
+            <span class="tk-t">std::unordered_set</span>&lt;<span class="tk-t">std::string</span>&gt; allowed;
+            <span class="tk-k">for</span> (<span class="tk-k">auto</span>&amp; [k, _] : m-&gt;<span class="tk-n">handlers</span>) allowed.<span class="tk-n">insert</span>(k);
+            <span class="tk-k">return</span> <span class="tk-t">MethodNotAllowed</span>{allowed};
+        }
+        <span class="tk-k">return</span> <span class="tk-t">NotFound</span>{};
+    }
+};</code></pre>
+  </div>
+</div>
 
         <div class="discussion">
           <div class="label-row">▸ Discussion / Follow-ups</div>
@@ -1612,7 +2263,13 @@
     <div class="problem-body">
       <div class="label">Solution</div>
       <div class="content">
-<pre class="code"><code><span class="tk-k">import</span> java.util.*;
+<div class="lang-tabs">
+  <button class="lang-tab active" data-lang="java">Java</button>
+  <button class="lang-tab" data-lang="cpp">C++</button>
+</div>
+<div class="lang-panels">
+  <div class="lang-panel active" data-lang="java">
+    <pre class="code"><code><span class="tk-k">import</span> java.util.*;
 <span class="tk-k">import</span> java.util.function.*;
 <span class="tk-k">import</span> java.util.regex.*;
 
@@ -1698,6 +2355,91 @@
 <span class="tk-c">// Validator v = field("email").required().type(String.class).matches(EMAIL)</span>
 <span class="tk-c">//     .and(field("age").type(Number.class).range(0, 150));</span>
 <span class="tk-c">// List&lt;Violation&gt; problems = v.apply(payload);</span></code></pre>
+  </div>
+  <div class="lang-panel" data-lang="cpp">
+    <pre class="code cpp"><code><span class="tk-c">// C++17. Composable validation pipeline.</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;any&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;functional&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;optional&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;regex&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;string&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;unordered_map&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;vector&gt;</span>
+
+<span class="tk-k">struct</span> <span class="tk-t">Violation</span> { <span class="tk-t">std::string</span> field, code, message; };
+
+<span class="tk-k">using</span> <span class="tk-t">Payload</span> = <span class="tk-t">std::unordered_map</span>&lt;<span class="tk-t">std::string</span>, <span class="tk-t">std::any</span>&gt;;
+<span class="tk-k">using</span> <span class="tk-t">Validator</span> = <span class="tk-t">std::function</span>&lt;<span class="tk-t">std::vector</span>&lt;<span class="tk-t">Violation</span>&gt;(<span class="tk-k">const</span> <span class="tk-t">Payload</span>&amp;)&gt;;
+
+<span class="tk-t">Validator</span> <span class="tk-n">operator</span>+(<span class="tk-t">Validator</span> a, <span class="tk-t">Validator</span> b) {
+    <span class="tk-k">return</span> [a = <span class="tk-t">std::move</span>(a), b = <span class="tk-t">std::move</span>(b)](<span class="tk-k">const</span> <span class="tk-t">Payload</span>&amp; p) {
+        <span class="tk-k">auto</span> out = a(p);
+        <span class="tk-k">auto</span> r = b(p);
+        out.<span class="tk-n">insert</span>(out.<span class="tk-n">end</span>(), r.<span class="tk-n">begin</span>(), r.<span class="tk-n">end</span>());
+        <span class="tk-k">return</span> out;
+    };
+}
+
+<span class="tk-k">class</span> <span class="tk-t">FieldRule</span> {
+    <span class="tk-t">std::string</span> name_;
+    <span class="tk-t">std::vector</span>&lt;<span class="tk-t">std::function</span>&lt;<span class="tk-t">std::optional</span>&lt;<span class="tk-t">Violation</span>&gt;(<span class="tk-k">const</span> <span class="tk-t">std::any</span>*)&gt;&gt; checks_;
+    <span class="tk-k">bool</span> required_ = <span class="tk-k">false</span>;
+
+<span class="tk-k">public:</span>
+    <span class="tk-k">explicit</span> <span class="tk-t">FieldRule</span>(<span class="tk-t">std::string</span> n) : name_(<span class="tk-t">std::move</span>(n)) {}
+
+    <span class="tk-t">FieldRule</span>&amp; <span class="tk-n">required</span>() {
+        required_ = <span class="tk-k">true</span>;
+        checks_.<span class="tk-n">push_back</span>([n = name_](<span class="tk-k">const</span> <span class="tk-t">std::any</span>* v) -&gt; <span class="tk-t">std::optional</span>&lt;<span class="tk-t">Violation</span>&gt; {
+            <span class="tk-k">if</span> (!v || !v-&gt;<span class="tk-n">has_value</span>()) <span class="tk-k">return</span> <span class="tk-t">Violation</span>{n, <span class="tk-s">"REQUIRED"</span>, n + <span class="tk-s">" is required"</span>};
+            <span class="tk-k">return</span> <span class="tk-t">std::nullopt</span>;
+        });
+        <span class="tk-k">return</span> *<span class="tk-k">this</span>;
+    }
+
+    <span class="tk-k">template</span> &lt;<span class="tk-k">class</span> <span class="tk-t">T</span>&gt;
+    <span class="tk-t">FieldRule</span>&amp; <span class="tk-n">type</span>() {
+        checks_.<span class="tk-n">push_back</span>([n = name_](<span class="tk-k">const</span> <span class="tk-t">std::any</span>* v) -&gt; <span class="tk-t">std::optional</span>&lt;<span class="tk-t">Violation</span>&gt; {
+            <span class="tk-k">if</span> (!v || !v-&gt;<span class="tk-n">has_value</span>()) <span class="tk-k">return</span> <span class="tk-t">std::nullopt</span>;
+            <span class="tk-k">if</span> (!<span class="tk-t">std::any_cast</span>&lt;<span class="tk-t">T</span>&gt;(v)) <span class="tk-k">return</span> <span class="tk-t">Violation</span>{n, <span class="tk-s">"TYPE"</span>, n + <span class="tk-s">" wrong type"</span>};
+            <span class="tk-k">return</span> <span class="tk-t">std::nullopt</span>;
+        });
+        <span class="tk-k">return</span> *<span class="tk-k">this</span>;
+    }
+
+    <span class="tk-t">FieldRule</span>&amp; <span class="tk-n">matches</span>(<span class="tk-t">std::regex</span> re) {
+        checks_.<span class="tk-n">push_back</span>([n = name_, re = <span class="tk-t">std::move</span>(re)](<span class="tk-k">const</span> <span class="tk-t">std::any</span>* v)
+                -&gt; <span class="tk-t">std::optional</span>&lt;<span class="tk-t">Violation</span>&gt; {
+            <span class="tk-k">if</span> (!v || !v-&gt;<span class="tk-n">has_value</span>()) <span class="tk-k">return</span> <span class="tk-t">std::nullopt</span>;
+            <span class="tk-k">auto</span>* s = <span class="tk-t">std::any_cast</span>&lt;<span class="tk-t">std::string</span>&gt;(v);
+            <span class="tk-k">if</span> (s &amp;&amp; !<span class="tk-t">std::regex_match</span>(*s, re))
+                <span class="tk-k">return</span> <span class="tk-t">Violation</span>{n, <span class="tk-s">"FORMAT"</span>, n + <span class="tk-s">" format invalid"</span>};
+            <span class="tk-k">return</span> <span class="tk-t">std::nullopt</span>;
+        });
+        <span class="tk-k">return</span> *<span class="tk-k">this</span>;
+    }
+
+    <span class="tk-k">operator</span> <span class="tk-t">Validator</span>() <span class="tk-k">const</span> {
+        <span class="tk-k">auto</span> name = name_;
+        <span class="tk-k">auto</span> checks = checks_;
+        <span class="tk-k">auto</span> required = required_;
+        <span class="tk-k">return</span> [name, checks, required](<span class="tk-k">const</span> <span class="tk-t">Payload</span>&amp; p) {
+            <span class="tk-t">std::vector</span>&lt;<span class="tk-t">Violation</span>&gt; out;
+            <span class="tk-k">auto</span> it = p.<span class="tk-n">find</span>(name);
+            <span class="tk-k">const</span> <span class="tk-t">std::any</span>* v = (it != p.<span class="tk-n">end</span>()) ? &amp;it-&gt;<span class="tk-n">second</span> : <span class="tk-k">nullptr</span>;
+            <span class="tk-k">if</span> (!v &amp;&amp; !required) <span class="tk-k">return</span> out;
+            <span class="tk-k">for</span> (<span class="tk-k">auto</span>&amp; c : checks) <span class="tk-k">if</span> (<span class="tk-k">auto</span> r = c(v)) out.<span class="tk-n">push_back</span>(*r);
+            <span class="tk-k">return</span> out;
+        };
+    }
+};
+
+<span class="tk-c">// Usage:</span>
+<span class="tk-c">//   Validator v = FieldRule("email").required().type&lt;std::string&gt;().matches(re)</span>
+<span class="tk-c">//               + FieldRule("age").type&lt;int&gt;();</span>
+<span class="tk-c">//   auto problems = v(payload);</span></code></pre>
+  </div>
+</div>
 
         <div class="discussion">
           <div class="label-row">▸ Discussion / Follow-ups</div>
@@ -1771,7 +2513,13 @@
     <div class="problem-body">
       <div class="label">Solution</div>
       <div class="content">
-<pre class="code"><code><span class="tk-k">import</span> com.fasterxml.jackson.databind.*;
+<div class="lang-tabs">
+  <button class="lang-tab active" data-lang="java">Java</button>
+  <button class="lang-tab" data-lang="cpp">C++</button>
+</div>
+<div class="lang-panels">
+  <div class="lang-panel active" data-lang="java">
+    <pre class="code"><code><span class="tk-k">import</span> com.fasterxml.jackson.databind.*;
 <span class="tk-k">import</span> com.fasterxml.jackson.databind.node.*;
 <span class="tk-k">import</span> java.math.*;
 <span class="tk-k">import</span> java.time.*;
@@ -1875,6 +2623,125 @@
 
 <span class="tk-c">// Adding a new rule type: write a factory, register it. No engine changes.</span>
 <span class="tk-c">// registry.register("velocity", (n, r) -&gt; new VelocityRule(...));</span></code></pre>
+  </div>
+  <div class="lang-panel" data-lang="cpp">
+    <pre class="code cpp"><code><span class="tk-c">// C++17. JSON-driven rule engine with strategy registry.</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;chrono&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;functional&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;memory&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;nlohmann/json.hpp&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;optional&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;string&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;unordered_map&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;unordered_set&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;vector&gt;</span>
+
+<span class="tk-k">using</span> <span class="tk-t">json</span> = <span class="tk-t">nlohmann::json</span>;
+
+<span class="tk-k">struct</span> <span class="tk-t">Transaction</span> {
+    <span class="tk-t">std::string</span> userId;
+    <span class="tk-k">double</span> amount;
+    <span class="tk-t">std::string</span> country;
+    <span class="tk-t">std::chrono::system_clock::time_point</span> accountCreated;
+    <span class="tk-t">std::chrono::system_clock::time_point</span> ts;
+};
+
+<span class="tk-k">struct</span> <span class="tk-t">Rule</span> {
+    <span class="tk-k">virtual</span> ~<span class="tk-t">Rule</span>() = <span class="tk-k">default</span>;
+    <span class="tk-k">virtual bool</span> <span class="tk-n">evaluate</span>(<span class="tk-k">const</span> <span class="tk-t">Transaction</span>&amp;) <span class="tk-k">const</span> = <span class="tk-n">0</span>;
+    <span class="tk-t">std::optional</span>&lt;<span class="tk-t">std::string</span>&gt; action;
+};
+
+<span class="tk-k">class</span> <span class="tk-t">RuleRegistry</span> {
+<span class="tk-k">public:</span>
+    <span class="tk-k">using</span> <span class="tk-t">Factory</span> = <span class="tk-t">std::function</span>&lt;<span class="tk-t">std::unique_ptr</span>&lt;<span class="tk-t">Rule</span>&gt;(<span class="tk-k">const</span> <span class="tk-t">json</span>&amp;, <span class="tk-k">const</span> <span class="tk-t">RuleRegistry</span>&amp;)&gt;;
+
+    <span class="tk-t">RuleRegistry</span>&amp; <span class="tk-n">registerType</span>(<span class="tk-t">std::string</span> type, <span class="tk-t">Factory</span> f) {
+        factories_[<span class="tk-t">std::move</span>(type)] = <span class="tk-t">std::move</span>(f);
+        <span class="tk-k">return</span> *<span class="tk-k">this</span>;
+    }
+
+    <span class="tk-t">std::unique_ptr</span>&lt;<span class="tk-t">Rule</span>&gt; <span class="tk-n">build</span>(<span class="tk-k">const</span> <span class="tk-t">json</span>&amp; spec) <span class="tk-k">const</span> {
+        <span class="tk-k">auto</span> it = factories_.<span class="tk-n">find</span>(spec.<span class="tk-n">at</span>(<span class="tk-s">"type"</span>).<span class="tk-n">get</span>&lt;<span class="tk-t">std::string</span>&gt;());
+        <span class="tk-k">if</span> (it == factories_.<span class="tk-n">end</span>())
+            <span class="tk-k">throw</span> <span class="tk-t">std::invalid_argument</span>(<span class="tk-s">"unknown rule type"</span>);
+        <span class="tk-k">return</span> it-&gt;<span class="tk-n">second</span>(spec, *<span class="tk-k">this</span>);
+    }
+
+<span class="tk-k">private:</span>
+    <span class="tk-t">std::unordered_map</span>&lt;<span class="tk-t">std::string</span>, <span class="tk-t">Factory</span>&gt; factories_;
+};
+
+<span class="tk-c">// Generic predicate-based rule</span>
+<span class="tk-k">struct</span> <span class="tk-t">PredicateRule</span> : <span class="tk-t">Rule</span> {
+    <span class="tk-t">std::function</span>&lt;<span class="tk-k">bool</span>(<span class="tk-k">const</span> <span class="tk-t">Transaction</span>&amp;)&gt; pred;
+    <span class="tk-k">bool</span> <span class="tk-n">evaluate</span>(<span class="tk-k">const</span> <span class="tk-t">Transaction</span>&amp; t) <span class="tk-k">const override</span> { <span class="tk-k">return</span> pred(t); }
+};
+
+<span class="tk-k">struct</span> <span class="tk-t">CompositeRule</span> : <span class="tk-t">Rule</span> {
+    <span class="tk-t">std::vector</span>&lt;<span class="tk-t">std::unique_ptr</span>&lt;<span class="tk-t">Rule</span>&gt;&gt; children;
+    <span class="tk-k">bool</span> all;
+    <span class="tk-k">bool</span> <span class="tk-n">evaluate</span>(<span class="tk-k">const</span> <span class="tk-t">Transaction</span>&amp; t) <span class="tk-k">const override</span> {
+        <span class="tk-k">if</span> (all) {
+            <span class="tk-k">for</span> (<span class="tk-k">auto</span>&amp; c : children) <span class="tk-k">if</span> (!c-&gt;<span class="tk-n">evaluate</span>(t)) <span class="tk-k">return false</span>;
+            <span class="tk-k">return true</span>;
+        }
+        <span class="tk-k">for</span> (<span class="tk-k">auto</span>&amp; c : children) <span class="tk-k">if</span> (c-&gt;<span class="tk-n">evaluate</span>(t)) <span class="tk-k">return true</span>;
+        <span class="tk-k">return false</span>;
+    }
+};
+
+<span class="tk-k">static</span> <span class="tk-t">std::optional</span>&lt;<span class="tk-t">std::string</span>&gt; <span class="tk-n">actionOf</span>(<span class="tk-k">const</span> <span class="tk-t">json</span>&amp; n) {
+    <span class="tk-k">return</span> n.<span class="tk-n">contains</span>(<span class="tk-s">"action"</span>) ? <span class="tk-t">std::optional</span>(n[<span class="tk-s">"action"</span>].<span class="tk-n">get</span>&lt;<span class="tk-t">std::string</span>&gt;())
+                                : <span class="tk-t">std::nullopt</span>;
+}
+
+<span class="tk-t">RuleRegistry</span> <span class="tk-n">defaultRegistry</span>() {
+    <span class="tk-t">RuleRegistry</span> r;
+    r.<span class="tk-n">registerType</span>(<span class="tk-s">"amount_gt"</span>, [](<span class="tk-k">const</span> <span class="tk-t">json</span>&amp; n, <span class="tk-k">const</span> <span class="tk-t">RuleRegistry</span>&amp;) {
+        <span class="tk-k">double</span> v = n[<span class="tk-s">"value"</span>].<span class="tk-n">get</span>&lt;<span class="tk-k">double</span>&gt;();
+        <span class="tk-k">auto</span> p = <span class="tk-t">std::make_unique</span>&lt;<span class="tk-t">PredicateRule</span>&gt;();
+        p-&gt;<span class="tk-n">pred</span> = [v](<span class="tk-k">const</span> <span class="tk-t">Transaction</span>&amp; t) { <span class="tk-k">return</span> t.amount &gt; v; };
+        p-&gt;<span class="tk-n">action</span> = actionOf(n);
+        <span class="tk-k">return</span> p;
+    });
+    r.<span class="tk-n">registerType</span>(<span class="tk-s">"country_in"</span>, [](<span class="tk-k">const</span> <span class="tk-t">json</span>&amp; n, <span class="tk-k">const</span> <span class="tk-t">RuleRegistry</span>&amp;) {
+        <span class="tk-t">std::unordered_set</span>&lt;<span class="tk-t">std::string</span>&gt; set;
+        <span class="tk-k">for</span> (<span class="tk-k">auto</span>&amp; v : n[<span class="tk-s">"value"</span>]) set.<span class="tk-n">insert</span>(v.<span class="tk-n">get</span>&lt;<span class="tk-t">std::string</span>&gt;());
+        <span class="tk-k">auto</span> p = <span class="tk-t">std::make_unique</span>&lt;<span class="tk-t">PredicateRule</span>&gt;();
+        p-&gt;<span class="tk-n">pred</span> = [set](<span class="tk-k">const</span> <span class="tk-t">Transaction</span>&amp; t) { <span class="tk-k">return</span> set.<span class="tk-n">count</span>(t.country) &gt; <span class="tk-n">0</span>; };
+        p-&gt;<span class="tk-n">action</span> = actionOf(n);
+        <span class="tk-k">return</span> p;
+    });
+    <span class="tk-k">auto</span> composite = [](<span class="tk-k">bool</span> all) {
+        <span class="tk-k">return</span> [all](<span class="tk-k">const</span> <span class="tk-t">json</span>&amp; n, <span class="tk-k">const</span> <span class="tk-t">RuleRegistry</span>&amp; reg) {
+            <span class="tk-k">auto</span> c = <span class="tk-t">std::make_unique</span>&lt;<span class="tk-t">CompositeRule</span>&gt;();
+            c-&gt;<span class="tk-n">all</span> = all;
+            <span class="tk-k">for</span> (<span class="tk-k">auto</span>&amp; child : n[<span class="tk-s">"rules"</span>]) c-&gt;<span class="tk-n">children</span>.<span class="tk-n">push_back</span>(reg.<span class="tk-n">build</span>(child));
+            c-&gt;<span class="tk-n">action</span> = actionOf(n);
+            <span class="tk-k">return</span> c;
+        };
+    };
+    r.<span class="tk-n">registerType</span>(<span class="tk-s">"all"</span>, composite(<span class="tk-k">true</span>));
+    r.<span class="tk-n">registerType</span>(<span class="tk-s">"any"</span>, composite(<span class="tk-k">false</span>));
+    <span class="tk-k">return</span> r;
+}
+
+<span class="tk-k">class</span> <span class="tk-t">RuleEngine</span> {
+    <span class="tk-t">std::vector</span>&lt;<span class="tk-t">std::unique_ptr</span>&lt;<span class="tk-t">Rule</span>&gt;&gt; rules_;
+<span class="tk-k">public:</span>
+    <span class="tk-t">RuleEngine</span>(<span class="tk-k">const</span> <span class="tk-t">json</span>&amp; cfg, <span class="tk-k">const</span> <span class="tk-t">RuleRegistry</span>&amp; reg) {
+        <span class="tk-k">for</span> (<span class="tk-k">auto</span>&amp; r : cfg[<span class="tk-s">"rules"</span>]) rules_.<span class="tk-n">push_back</span>(reg.<span class="tk-n">build</span>(r));
+    }
+    <span class="tk-t">std::vector</span>&lt;<span class="tk-t">std::string</span>&gt; <span class="tk-n">evaluate</span>(<span class="tk-k">const</span> <span class="tk-t">Transaction</span>&amp; t) <span class="tk-k">const</span> {
+        <span class="tk-t">std::vector</span>&lt;<span class="tk-t">std::string</span>&gt; out;
+        <span class="tk-k">for</span> (<span class="tk-k">auto</span>&amp; r : rules_)
+            <span class="tk-k">if</span> (r-&gt;<span class="tk-n">evaluate</span>(t) &amp;&amp; r-&gt;<span class="tk-n">action</span>) out.<span class="tk-n">push_back</span>(*r-&gt;<span class="tk-n">action</span>);
+        <span class="tk-k">return</span> out;
+    }
+};</code></pre>
+  </div>
+</div>
 
         <div class="discussion">
           <div class="label-row">▸ Discussion / Follow-ups</div>
@@ -1938,7 +2805,13 @@
     <div class="problem-body">
       <div class="label">Solution</div>
       <div class="content">
-<pre class="code"><code><span class="tk-k">import</span> java.time.*;
+<div class="lang-tabs">
+  <button class="lang-tab active" data-lang="java">Java</button>
+  <button class="lang-tab" data-lang="cpp">C++</button>
+</div>
+<div class="lang-panels">
+  <div class="lang-panel active" data-lang="java">
+    <pre class="code"><code><span class="tk-k">import</span> java.time.*;
 <span class="tk-k">import</span> java.util.concurrent.*;
 <span class="tk-k">import</span> java.util.concurrent.atomic.*;
 
@@ -2061,6 +2934,135 @@
         <span class="tk-k">void</span> <span class="tk-n">reset</span>() { <span class="tk-k">synchronized</span> (lock) { idx.<span class="tk-n">set</span>(<span class="tk-n">0</span>); filled = <span class="tk-n">0</span>; } }
     }
 }</code></pre>
+  </div>
+  <div class="lang-panel" data-lang="cpp">
+    <pre class="code cpp"><code><span class="tk-c">// C++17. Three-state circuit breaker with CAS state machine.</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;atomic&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;chrono&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;exception&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;functional&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;mutex&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;stdexcept&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;vector&gt;</span>
+
+<span class="tk-k">class</span> <span class="tk-t">CircuitOpenException</span> : <span class="tk-k">public</span> <span class="tk-t">std::runtime_error</span> {
+<span class="tk-k">public:</span>
+    <span class="tk-t">CircuitOpenException</span>() : <span class="tk-t">std::runtime_error</span>(<span class="tk-s">"circuit open"</span>) {}
+};
+
+<span class="tk-k">class</span> <span class="tk-t">CircuitBreaker</span> {
+<span class="tk-k">public:</span>
+    <span class="tk-k">enum class</span> <span class="tk-t">State</span> { <span class="tk-n">CLOSED</span>, <span class="tk-n">OPEN</span>, <span class="tk-n">HALF_OPEN</span> };
+
+    <span class="tk-k">struct</span> <span class="tk-t">Config</span> {
+        <span class="tk-k">int</span> windowSize;
+        <span class="tk-k">double</span> failureThreshold;
+        <span class="tk-t">std::chrono::milliseconds</span> openDuration;
+        <span class="tk-k">int</span> halfOpenProbes;
+    };
+
+<span class="tk-k">private:</span>
+    <span class="tk-t">Config</span> cfg_;
+    <span class="tk-t">std::atomic</span>&lt;<span class="tk-t">State</span>&gt; state_{<span class="tk-t">State::CLOSED</span>};
+    <span class="tk-t">std::atomic</span>&lt;<span class="tk-k">int64_t</span>&gt; openedAtMs_{<span class="tk-n">0</span>};
+    <span class="tk-t">std::atomic</span>&lt;<span class="tk-k">int</span>&gt; probesInFlight_{<span class="tk-n">0</span>};
+    <span class="tk-t">std::atomic</span>&lt;<span class="tk-k">int</span>&gt; probeSuccesses_{<span class="tk-n">0</span>};
+
+    <span class="tk-t">std::vector</span>&lt;<span class="tk-k">bool</span>&gt; outcomes_;
+    <span class="tk-k">int</span> outcomesIdx_ = <span class="tk-n">0</span>;
+    <span class="tk-k">int</span> outcomesFilled_ = <span class="tk-n">0</span>;
+    <span class="tk-t">std::mutex</span> outcomesMu_;
+
+    <span class="tk-k">static int64_t</span> <span class="tk-n">nowMs</span>() {
+        <span class="tk-k">return</span> <span class="tk-t">std::chrono::duration_cast</span>&lt;<span class="tk-t">std::chrono::milliseconds</span>&gt;(
+            <span class="tk-t">std::chrono::steady_clock::now</span>().<span class="tk-n">time_since_epoch</span>()).<span class="tk-n">count</span>();
+    }
+
+    <span class="tk-k">void</span> <span class="tk-n">recordOutcome</span>(<span class="tk-k">bool</span> success) {
+        <span class="tk-t">std::lock_guard</span>&lt;<span class="tk-t">std::mutex</span>&gt; lock(outcomesMu_);
+        outcomes_[outcomesIdx_++ % cfg_.windowSize] = success;
+        <span class="tk-k">if</span> (outcomesFilled_ &lt; cfg_.windowSize) outcomesFilled_++;
+    }
+
+    <span class="tk-k">double</span> <span class="tk-n">failureRate</span>() {
+        <span class="tk-t">std::lock_guard</span>&lt;<span class="tk-t">std::mutex</span>&gt; lock(outcomesMu_);
+        <span class="tk-k">if</span> (outcomesFilled_ == <span class="tk-n">0</span>) <span class="tk-k">return</span> <span class="tk-n">0.0</span>;
+        <span class="tk-k">int</span> fails = <span class="tk-n">0</span>;
+        <span class="tk-k">for</span> (<span class="tk-k">int</span> i = <span class="tk-n">0</span>; i &lt; outcomesFilled_; ++i) <span class="tk-k">if</span> (!outcomes_[i]) fails++;
+        <span class="tk-k">return</span> <span class="tk-k">static_cast</span>&lt;<span class="tk-k">double</span>&gt;(fails) / outcomesFilled_;
+    }
+
+    <span class="tk-k">bool</span> <span class="tk-n">windowFilled</span>() {
+        <span class="tk-t">std::lock_guard</span>&lt;<span class="tk-t">std::mutex</span>&gt; lock(outcomesMu_);
+        <span class="tk-k">return</span> outcomesFilled_ == cfg_.windowSize;
+    }
+
+    <span class="tk-k">void</span> <span class="tk-n">trip</span>() {
+        <span class="tk-t">State</span> prev = state_.<span class="tk-n">exchange</span>(<span class="tk-t">State::OPEN</span>);
+        <span class="tk-k">if</span> (prev != <span class="tk-t">State::OPEN</span>) openedAtMs_.<span class="tk-n">store</span>(nowMs());
+    }
+
+    <span class="tk-t">State</span> <span class="tk-n">currentState</span>() {
+        <span class="tk-t">State</span> s = state_.<span class="tk-n">load</span>();
+        <span class="tk-k">if</span> (s == <span class="tk-t">State::OPEN</span> &amp;&amp;
+            nowMs() - openedAtMs_.<span class="tk-n">load</span>() &gt;= cfg_.openDuration.<span class="tk-n">count</span>()) {
+            <span class="tk-t">State</span> expected = <span class="tk-t">State::OPEN</span>;
+            <span class="tk-k">if</span> (state_.<span class="tk-n">compare_exchange_strong</span>(expected, <span class="tk-t">State::HALF_OPEN</span>)) {
+                probesInFlight_.<span class="tk-n">store</span>(<span class="tk-n">0</span>);
+                probeSuccesses_.<span class="tk-n">store</span>(<span class="tk-n">0</span>);
+                <span class="tk-k">return</span> <span class="tk-t">State::HALF_OPEN</span>;
+            }
+        }
+        <span class="tk-k">return</span> state_.<span class="tk-n">load</span>();
+    }
+
+<span class="tk-k">public:</span>
+    <span class="tk-k">explicit</span> <span class="tk-t">CircuitBreaker</span>(<span class="tk-t">Config</span> cfg) : cfg_(cfg), outcomes_(cfg.windowSize) {}
+
+    <span class="tk-k">template</span> &lt;<span class="tk-k">class</span> <span class="tk-t">F</span>&gt;
+    <span class="tk-k">auto</span> <span class="tk-n">execute</span>(<span class="tk-t">F</span>&amp;&amp; op) -&gt; <span class="tk-k">decltype</span>(op()) {
+        <span class="tk-t">State</span> s = currentState();
+        <span class="tk-k">if</span> (s == <span class="tk-t">State::OPEN</span>) <span class="tk-k">throw</span> <span class="tk-t">CircuitOpenException</span>();
+        <span class="tk-k">if</span> (s == <span class="tk-t">State::HALF_OPEN</span>) {
+            <span class="tk-k">if</span> (probesInFlight_.<span class="tk-n">fetch_add</span>(<span class="tk-n">1</span>) + <span class="tk-n">1</span> &gt; cfg_.halfOpenProbes) {
+                probesInFlight_.<span class="tk-n">fetch_sub</span>(<span class="tk-n">1</span>);
+                <span class="tk-k">throw</span> <span class="tk-t">CircuitOpenException</span>();
+            }
+        }
+        <span class="tk-k">struct</span> <span class="tk-t">Guard</span> {
+            <span class="tk-t">CircuitBreaker</span>* cb; <span class="tk-t">State</span> s;
+            ~<span class="tk-t">Guard</span>() { <span class="tk-k">if</span> (s == <span class="tk-t">State::HALF_OPEN</span>) cb-&gt;<span class="tk-n">probesInFlight_</span>.<span class="tk-n">fetch_sub</span>(<span class="tk-n">1</span>); }
+        } guard{<span class="tk-k">this</span>, s};
+
+        <span class="tk-k">try</span> {
+            <span class="tk-k">auto</span> result = op();
+            <span class="tk-k">if</span> (s == <span class="tk-t">State::HALF_OPEN</span>) {
+                <span class="tk-k">if</span> (probeSuccesses_.<span class="tk-n">fetch_add</span>(<span class="tk-n">1</span>) + <span class="tk-n">1</span> &gt;= cfg_.halfOpenProbes) {
+                    <span class="tk-t">State</span> expected = <span class="tk-t">State::HALF_OPEN</span>;
+                    <span class="tk-k">if</span> (state_.<span class="tk-n">compare_exchange_strong</span>(expected, <span class="tk-t">State::CLOSED</span>)) {
+                        <span class="tk-t">std::lock_guard</span>&lt;<span class="tk-t">std::mutex</span>&gt; lock(outcomesMu_);
+                        outcomesIdx_ = <span class="tk-n">0</span>; outcomesFilled_ = <span class="tk-n">0</span>;
+                    }
+                }
+            } <span class="tk-k">else</span> {
+                recordOutcome(<span class="tk-k">true</span>);
+            }
+            <span class="tk-k">return</span> result;
+        } <span class="tk-k">catch</span> (...) {
+            <span class="tk-k">if</span> (s == <span class="tk-t">State::HALF_OPEN</span>) {
+                trip();
+            } <span class="tk-k">else</span> {
+                recordOutcome(<span class="tk-k">false</span>);
+                <span class="tk-k">if</span> (windowFilled() &amp;&amp; failureRate() &gt;= cfg_.failureThreshold) trip();
+            }
+            <span class="tk-k">throw</span>;
+        }
+    }
+
+    <span class="tk-t">State</span> <span class="tk-n">state</span>() { <span class="tk-k">return</span> state_.<span class="tk-n">load</span>(); }
+};</code></pre>
+  </div>
+</div>
 
         <div class="discussion">
           <div class="label-row">▸ Discussion / Follow-ups</div>
@@ -2124,7 +3126,13 @@
     <div class="problem-body">
       <div class="label">Solution</div>
       <div class="content">
-<pre class="code"><code><span class="tk-k">import</span> java.time.*;
+<div class="lang-tabs">
+  <button class="lang-tab active" data-lang="java">Java</button>
+  <button class="lang-tab" data-lang="cpp">C++</button>
+</div>
+<div class="lang-panels">
+  <div class="lang-panel active" data-lang="java">
+    <pre class="code"><code><span class="tk-k">import</span> java.time.*;
 <span class="tk-k">import</span> java.util.concurrent.*;
 <span class="tk-k">import</span> java.util.concurrent.atomic.*;
 
@@ -2220,6 +3228,110 @@
         <span class="tk-k">for</span> (<span class="tk-t">Thread</span> w : workers) w.<span class="tk-n">join</span>(<span class="tk-n">1000</span>);
     }
 }</code></pre>
+  </div>
+  <div class="lang-panel" data-lang="cpp">
+    <pre class="code cpp"><code><span class="tk-c">// C++17. In-memory job queue with priority + delayed execution + retry.</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;atomic&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;chrono&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;condition_variable&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;functional&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;iostream&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;memory&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;mutex&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;queue&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;thread&gt;</span>
+<span class="tk-k">#include</span> <span class="tk-s">&lt;vector&gt;</span>
+
+<span class="tk-k">class</span> <span class="tk-t">JobQueue</span> {
+    <span class="tk-k">struct</span> <span class="tk-t">Task</span> {
+        <span class="tk-t">std::function</span>&lt;<span class="tk-k">void</span>()&gt; job;
+        <span class="tk-k">int</span> priority;                 <span class="tk-c">// higher = sooner</span>
+        <span class="tk-k">int64_t</span> seq;                  <span class="tk-c">// FIFO tiebreak</span>
+        <span class="tk-t">std::chrono::steady_clock::time_point</span> readyAt;
+        <span class="tk-k">int</span> attempt;
+        <span class="tk-k">int</span> maxAttempts;
+    };
+
+    <span class="tk-k">struct</span> <span class="tk-t">Cmp</span> {
+        <span class="tk-k">bool</span> <span class="tk-n">operator</span>()(<span class="tk-k">const</span> <span class="tk-t">Task</span>&amp; a, <span class="tk-k">const</span> <span class="tk-t">Task</span>&amp; b) <span class="tk-k">const</span> {
+            <span class="tk-c">// priority_queue is a max-heap; we want the *least* element on top.</span>
+            <span class="tk-k">if</span> (a.readyAt != b.readyAt) <span class="tk-k">return</span> a.readyAt &gt; b.readyAt;
+            <span class="tk-k">if</span> (a.priority != b.priority) <span class="tk-k">return</span> a.priority &lt; b.priority;
+            <span class="tk-k">return</span> a.seq &gt; b.seq;
+        }
+    };
+
+    <span class="tk-t">std::priority_queue</span>&lt;<span class="tk-t">Task</span>, <span class="tk-t">std::vector</span>&lt;<span class="tk-t">Task</span>&gt;, <span class="tk-t">Cmp</span>&gt; pq_;
+    <span class="tk-t">std::mutex</span> mu_;
+    <span class="tk-t">std::condition_variable</span> cv_;
+    <span class="tk-t">std::atomic</span>&lt;<span class="tk-k">bool</span>&gt; running_{<span class="tk-k">true</span>};
+    <span class="tk-t">std::atomic</span>&lt;<span class="tk-k">int64_t</span>&gt; nextSeq_{<span class="tk-n">0</span>};
+    <span class="tk-t">std::vector</span>&lt;<span class="tk-t">std::thread</span>&gt; workers_;
+
+    <span class="tk-k">void</span> <span class="tk-n">runLoop</span>() {
+        <span class="tk-k">while</span> (running_.<span class="tk-n">load</span>()) {
+            <span class="tk-t">std::unique_lock</span>&lt;<span class="tk-t">std::mutex</span>&gt; lock(mu_);
+            cv_.<span class="tk-n">wait</span>(lock, [&amp;] { <span class="tk-k">return</span> !running_ || !pq_.<span class="tk-n">empty</span>(); });
+            <span class="tk-k">if</span> (!running_) <span class="tk-k">return</span>;
+
+            <span class="tk-k">auto</span> now = <span class="tk-t">std::chrono::steady_clock::now</span>();
+            <span class="tk-k">if</span> (pq_.<span class="tk-n">top</span>().<span class="tk-n">readyAt</span> &gt; now) {
+                cv_.<span class="tk-n">wait_until</span>(lock, pq_.<span class="tk-n">top</span>().<span class="tk-n">readyAt</span>);
+                <span class="tk-k">continue</span>;
+            }
+            <span class="tk-t">Task</span> t = pq_.<span class="tk-n">top</span>();
+            pq_.<span class="tk-n">pop</span>();
+            lock.<span class="tk-n">unlock</span>();
+
+            <span class="tk-k">try</span> {
+                t.job();
+            } <span class="tk-k">catch</span> (<span class="tk-k">const</span> <span class="tk-t">std::exception</span>&amp; e) {
+                t.attempt++;
+                <span class="tk-k">if</span> (t.attempt &lt; t.maxAttempts) {
+                    <span class="tk-k">int64_t</span> backoff = <span class="tk-n">100LL</span> * (<span class="tk-n">1LL</span> &lt;&lt; <span class="tk-t">std::min</span>(t.attempt, <span class="tk-n">10</span>));
+                    t.readyAt = <span class="tk-t">std::chrono::steady_clock::now</span>() +
+                                <span class="tk-t">std::chrono::milliseconds</span>(backoff);
+                    {
+                        <span class="tk-t">std::lock_guard</span>&lt;<span class="tk-t">std::mutex</span>&gt; lk(mu_);
+                        pq_.<span class="tk-n">push</span>(<span class="tk-t">std::move</span>(t));
+                    }
+                    cv_.<span class="tk-n">notify_one</span>();
+                } <span class="tk-k">else</span> {
+                    <span class="tk-t">std::cerr</span> &lt;&lt; <span class="tk-s">"job exhausted retries: "</span> &lt;&lt; e.<span class="tk-n">what</span>() &lt;&lt; <span class="tk-s">'\n'</span>;
+                }
+            }
+        }
+    }
+
+<span class="tk-k">public:</span>
+    <span class="tk-k">explicit</span> <span class="tk-t">JobQueue</span>(<span class="tk-k">int</span> workerCount) {
+        <span class="tk-k">for</span> (<span class="tk-k">int</span> i = <span class="tk-n">0</span>; i &lt; workerCount; ++i)
+            workers_.<span class="tk-n">emplace_back</span>([<span class="tk-k">this</span>] { runLoop(); });
+    }
+
+    ~<span class="tk-t">JobQueue</span>() { close(); }
+
+    <span class="tk-k">void</span> <span class="tk-n">submit</span>(<span class="tk-t">std::function</span>&lt;<span class="tk-k">void</span>()&gt; job, <span class="tk-k">int</span> priority = <span class="tk-n">0</span>,
+                <span class="tk-t">std::chrono::steady_clock::time_point</span> runAt =
+                    <span class="tk-t">std::chrono::steady_clock::now</span>(),
+                <span class="tk-k">int</span> maxAttempts = <span class="tk-n">3</span>) {
+        <span class="tk-t">Task</span> t{<span class="tk-t">std::move</span>(job), priority, nextSeq_.<span class="tk-n">fetch_add</span>(<span class="tk-n">1</span>),
+               runAt, <span class="tk-n">0</span>, maxAttempts};
+        {
+            <span class="tk-t">std::lock_guard</span>&lt;<span class="tk-t">std::mutex</span>&gt; lock(mu_);
+            pq_.<span class="tk-n">push</span>(<span class="tk-t">std::move</span>(t));
+        }
+        cv_.<span class="tk-n">notify_one</span>();
+    }
+
+    <span class="tk-k">void</span> <span class="tk-n">close</span>() {
+        <span class="tk-k">if</span> (!running_.<span class="tk-n">exchange</span>(<span class="tk-k">false</span>)) <span class="tk-k">return</span>;
+        cv_.<span class="tk-n">notify_all</span>();
+        <span class="tk-k">for</span> (<span class="tk-k">auto</span>&amp; w : workers_) <span class="tk-k">if</span> (w.<span class="tk-n">joinable</span>()) w.<span class="tk-n">join</span>();
+    }
+};</code></pre>
+  </div>
+</div>
 
         <div class="discussion">
           <div class="label-row">▸ Discussion / Follow-ups</div>
@@ -2249,6 +3361,54 @@
   </footer>
 
 </div>
+
+
+<script>
+  (function() {
+    document.addEventListener('click', function(e) {
+      var tab = e.target.closest('.lang-tab');
+      if (!tab) return;
+      var group = tab.closest('.lang-tabs');
+      var panels = group.nextElementSibling;
+      var lang = tab.dataset.lang;
+      group.querySelectorAll('.lang-tab').forEach(function(t) {
+        t.classList.toggle('active', t === tab);
+      });
+      panels.querySelectorAll('.lang-panel').forEach(function(p) {
+        p.classList.toggle('active', p.dataset.lang === lang);
+      });
+      // Remember preference across all problems on the page
+      try { localStorage.setItem('preferredLang', lang); } catch (e) {}
+      document.querySelectorAll('.lang-tabs').forEach(function(g) {
+        g.querySelectorAll('.lang-tab').forEach(function(t) {
+          t.classList.toggle('active', t.dataset.lang === lang);
+        });
+      });
+      document.querySelectorAll('.lang-panels').forEach(function(ps) {
+        ps.querySelectorAll('.lang-panel').forEach(function(p) {
+          p.classList.toggle('active', p.dataset.lang === lang);
+        });
+      });
+    });
+
+    // Apply remembered language on load
+    try {
+      var pref = localStorage.getItem('preferredLang');
+      if (pref && pref !== 'java') {
+        document.querySelectorAll('.lang-tabs').forEach(function(g) {
+          g.querySelectorAll('.lang-tab').forEach(function(t) {
+            t.classList.toggle('active', t.dataset.lang === pref);
+          });
+        });
+        document.querySelectorAll('.lang-panels').forEach(function(ps) {
+          ps.querySelectorAll('.lang-panel').forEach(function(p) {
+            p.classList.toggle('active', p.dataset.lang === pref);
+          });
+        });
+      }
+    } catch (e) {}
+  })();
+</script>
 
 </body>
 </html>
