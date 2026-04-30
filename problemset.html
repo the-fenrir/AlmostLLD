@@ -1,0 +1,2254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Practical Coding Round — 12 Problems · Java</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1714;
+    --paper: #f3ede2;
+    --paper-warm: #ebe2d2;
+    --accent: #c8442a;
+    --accent-soft: #e8d5b7;
+    --muted: #6b6358;
+    --hi: #f5d547;
+    --code-bg: #1a1714;
+    --code-fg: #ebe2d2;
+    --code-comment: #9b8e75;
+    --code-string: #f5d547;
+    --code-keyword: #ff8a65;
+    --code-type: #80cbc4;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Fraunces', 'Georgia', serif;
+    font-weight: 400;
+    line-height: 1.6;
+    font-size: 17px;
+    background-image:
+      radial-gradient(ellipse at top left, rgba(200,68,42,0.04), transparent 50%),
+      radial-gradient(ellipse at bottom right, rgba(245,213,71,0.05), transparent 50%);
+    background-attachment: fixed;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.3;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.09 0 0 0 0 0.08 0 0 0 0.4 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    z-index: 1;
+  }
+
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; position: relative; z-index: 2; }
+
+  /* MASTHEAD */
+  header.masthead {
+    border-bottom: 2px solid var(--ink);
+    padding: 18px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  header.masthead .row {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+  header.masthead .left { display: flex; gap: 24px; }
+  header.masthead .dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    margin-right: 6px;
+    transform: translateY(-1px);
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  /* HERO */
+  .hero {
+    padding: 72px 0 48px;
+    border-bottom: 2px solid var(--ink);
+  }
+  .hero .kicker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .hero .kicker::before { content: ''; flex: 0 0 40px; height: 1px; background: var(--accent); }
+  .hero .kicker::after { content: ''; flex: 1; height: 1px; background: var(--accent); }
+
+  h1.title {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: clamp(44px, 8vw, 112px);
+    line-height: 0.92;
+    letter-spacing: -0.035em;
+    margin-bottom: 28px;
+    font-variation-settings: "opsz" 144;
+  }
+  h1.title em { font-style: italic; font-weight: 400; color: var(--accent); }
+
+  .hero .deck {
+    font-size: clamp(19px, 2vw, 24px);
+    line-height: 1.4;
+    max-width: 760px;
+    font-weight: 300;
+    margin-bottom: 40px;
+    font-style: italic;
+  }
+
+  .hero-meta {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    padding-top: 28px;
+    border-top: 1px solid var(--ink);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .hero-meta div span { display: block; color: var(--muted); margin-bottom: 6px; font-size: 10px; }
+  .hero-meta div strong { font-weight: 700; color: var(--ink); font-size: 13px; }
+
+  /* TOC */
+  .toc {
+    padding: 56px 0;
+    border-bottom: 1px solid var(--ink);
+  }
+  .toc h2 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 28px;
+    border-top: 2px solid var(--accent);
+    padding-top: 12px;
+    display: inline-block;
+  }
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0;
+    border-top: 1px solid var(--ink);
+    border-left: 1px solid var(--ink);
+  }
+  .toc-item {
+    border-right: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    padding: 18px 22px;
+    display: grid;
+    grid-template-columns: 50px 1fr auto;
+    gap: 14px;
+    align-items: center;
+    text-decoration: none;
+    color: var(--ink);
+    transition: background 0.25s ease;
+  }
+  .toc-item:hover { background: var(--paper-warm); }
+  .toc-item .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+  }
+  .toc-item .name {
+    font-family: 'Fraunces', serif;
+    font-size: 19px;
+    font-weight: 500;
+    line-height: 1.2;
+  }
+  .toc-item .name em { font-style: italic; color: var(--accent); font-weight: 400; }
+  .toc-item .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: var(--accent-soft);
+    padding: 4px 8px;
+    border-radius: 2px;
+  }
+  .toc-item .tag.hard { color: #fff; background: var(--accent); }
+  .toc-item .tag.med { color: var(--ink); background: var(--hi); }
+
+  /* PROBLEM SECTION */
+  .problem {
+    padding: 72px 0;
+    border-bottom: 1px solid var(--ink);
+    scroll-margin-top: 20px;
+  }
+  .problem-head {
+    display: grid;
+    grid-template-columns: 100px 1fr auto;
+    gap: 32px;
+    align-items: baseline;
+    margin-bottom: 36px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(26,23,20,0.2);
+  }
+  .problem-head .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    border-top: 2px solid var(--accent);
+    padding-top: 10px;
+    font-weight: 700;
+  }
+  .problem-head h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: clamp(30px, 4vw, 48px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+  .problem-head h2 em { font-style: italic; color: var(--accent); font-weight: 400; }
+  .problem-head .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: right;
+    line-height: 1.6;
+  }
+  .problem-head .meta strong { color: var(--ink); display: block; }
+  .problem-head .meta .difficulty {
+    display: inline-block;
+    padding: 3px 8px;
+    margin-top: 4px;
+    border-radius: 2px;
+    background: var(--accent-soft);
+    color: var(--ink);
+  }
+  .problem-head .meta .difficulty.med { background: var(--hi); }
+  .problem-head .meta .difficulty.hard { background: var(--accent); color: #fff; }
+
+  .problem-body {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 32px;
+  }
+  .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding-top: 4px;
+  }
+  .content p {
+    font-size: 17px;
+    line-height: 1.7;
+    margin-bottom: 14px;
+  }
+  .content p code,
+  .content li code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    background: var(--accent-soft);
+    padding: 2px 6px;
+    border-radius: 2px;
+  }
+  .content ul {
+    margin: 8px 0 14px 0;
+    padding-left: 24px;
+  }
+  .content ul li {
+    font-size: 17px;
+    line-height: 1.65;
+    margin-bottom: 6px;
+  }
+  .content em.term { font-style: italic; color: var(--accent); font-weight: 500; }
+
+  .row { margin-bottom: 28px; }
+
+  /* HINTS — collapsible */
+  details.hints {
+    margin: 24px 0;
+    border-left: 3px solid var(--accent);
+    padding-left: 20px;
+  }
+  details.hints summary {
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    padding: 6px 0;
+    user-select: none;
+    list-style: none;
+  }
+  details.hints summary::-webkit-details-marker { display: none; }
+  details.hints summary::before {
+    content: '+ ';
+    font-weight: 700;
+    margin-right: 4px;
+  }
+  details.hints[open] summary::before { content: '− '; }
+  details.hints ol { margin-top: 12px; padding-left: 22px; }
+  details.hints ol li {
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 8px;
+    padding-left: 4px;
+  }
+
+  /* CODE BLOCK */
+  pre.code {
+    background: var(--code-bg);
+    color: var(--code-fg);
+    padding: 24px 28px;
+    border-radius: 4px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.65;
+    margin: 18px 0;
+    border-left: 4px solid var(--accent);
+    position: relative;
+  }
+  pre.code::before {
+    content: 'JAVA';
+    position: absolute;
+    top: 8px;
+    right: 14px;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--code-comment);
+    font-weight: 700;
+  }
+  pre.code code { font-family: inherit; }
+
+  /* simple syntax tokens */
+  .tk-c { color: var(--code-comment); font-style: italic; }
+  .tk-k { color: var(--code-keyword); font-weight: 500; }
+  .tk-s { color: var(--code-string); }
+  .tk-t { color: var(--code-type); }
+  .tk-n { color: #ffb74d; }
+
+  /* DISCUSSION */
+  .discussion {
+    background: var(--paper-warm);
+    border: 1px solid var(--ink);
+    padding: 24px 28px;
+    margin-top: 24px;
+    border-radius: 2px;
+  }
+  .discussion .label-row {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 8px;
+  }
+  .discussion ul { padding-left: 22px; }
+  .discussion ul li { font-size: 16px; line-height: 1.6; margin-bottom: 8px; }
+  .discussion ul li strong { font-weight: 600; }
+
+  /* FOOTER */
+  footer {
+    padding: 56px 0 40px;
+    border-top: 2px solid var(--ink);
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  footer .colophon { max-width: 480px; line-height: 1.7; }
+  footer .stamp {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 14px;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--ink);
+    text-align: right;
+  }
+  footer .stamp big {
+    display: block;
+    font-size: 32px;
+    font-weight: 300;
+    line-height: 1;
+    margin-top: 4px;
+    color: var(--accent);
+  }
+
+  /* fade-in */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: rise 0.9s cubic-bezier(0.2, 0.65, 0.3, 1) forwards;
+  }
+  @keyframes rise { to { opacity: 1; transform: translateY(0); } }
+  .reveal:nth-child(1) { animation-delay: 0.05s; }
+  .reveal:nth-child(2) { animation-delay: 0.15s; }
+  .reveal:nth-child(3) { animation-delay: 0.25s; }
+  .reveal:nth-child(4) { animation-delay: 0.35s; }
+
+  /* TOP LINK */
+  .top-link {
+    display: block;
+    margin-top: 32px;
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    border-top: 1px dashed var(--muted);
+    padding-top: 16px;
+  }
+  .top-link:hover { color: var(--accent); }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    body { font-size: 16px; }
+    .wrap { padding: 0 20px; }
+    header.masthead .row { padding: 0 20px; font-size: 9px; }
+    header.masthead .left { gap: 10px; flex-wrap: wrap; }
+    .hero { padding: 48px 0 32px; }
+    .hero-meta { grid-template-columns: 1fr 1fr; gap: 20px; }
+    .toc-grid { grid-template-columns: 1fr; }
+    .toc-item { grid-template-columns: 36px 1fr auto; gap: 10px; padding: 14px 16px; }
+    .problem-head { grid-template-columns: 1fr; gap: 12px; }
+    .problem-head .meta { text-align: left; }
+    .problem-body { grid-template-columns: 1fr; gap: 12px; }
+    pre.code { font-size: 12px; padding: 18px 16px; }
+    footer { flex-direction: column; gap: 24px; align-items: flex-start; }
+    footer .stamp { text-align: left; }
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="row">
+    <div class="left">
+      <span><span class="dot"></span>VOL. 01 / NO. 04</span>
+      <span>PROBLEM SET · JAVA</span>
+    </div>
+    <div>MID-LEVEL · 12 PROBLEMS</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="kicker reveal">A Practice Set</div>
+    <h1 class="title reveal">
+      Twelve <em>Problems</em><br>
+      Built for the Round
+    </h1>
+    <p class="deck reveal">
+      Production-flavored problems with full Java solutions, hints, and the follow-up questions that <em style="color: var(--accent);">actually decide</em> the score. Not LeetCode. Not toy code.
+    </p>
+    <div class="hero-meta reveal">
+      <div><span>Language</span><strong>Java 17</strong></div>
+      <div><span>Level</span><strong>Mid-level (2–5 yrs)</strong></div>
+      <div><span>Problems</span><strong>12, mixed archetypes</strong></div>
+      <div><span>Per problem</span><strong>30–60 min</strong></div>
+    </div>
+  </section>
+
+  <!-- TOC -->
+  <section class="toc">
+    <h2>The Set</h2>
+    <div class="toc-grid">
+      <a href="#p01" class="toc-item"><span class="num">01</span><span class="name">Top-K <em>IPs</em> from access logs</span><span class="tag">parsing</span></a>
+      <a href="#p02" class="toc-item"><span class="num">02</span><span class="name">Sliding-window <em>error rate</em></span><span class="tag med">parsing</span></a>
+      <a href="#p03" class="toc-item"><span class="num">03</span><span class="name">Thread-safe <em>LRU cache</em></span><span class="tag med">primitive</span></a>
+      <a href="#p04" class="toc-item"><span class="num">04</span><span class="name">Token-bucket <em>rate limiter</em></span><span class="tag med">primitive</span></a>
+      <a href="#p05" class="toc-item"><span class="num">05</span><span class="name">Retry with <em>exponential backoff</em></span><span class="tag">primitive</span></a>
+      <a href="#p06" class="toc-item"><span class="num">06</span><span class="name">CSV <em>dedup &amp; merge</em></span><span class="tag">pipeline</span></a>
+      <a href="#p07" class="toc-item"><span class="num">07</span><span class="name">Streaming <em>JSON aggregator</em></span><span class="tag med">pipeline</span></a>
+      <a href="#p08" class="toc-item"><span class="num">08</span><span class="name">Tiny <em>HTTP router</em></span><span class="tag med">service</span></a>
+      <a href="#p09" class="toc-item"><span class="num">09</span><span class="name">Request <em>validation pipeline</em></span><span class="tag">service</span></a>
+      <a href="#p10" class="toc-item"><span class="num">10</span><span class="name">Config-driven <em>rule engine</em></span><span class="tag hard">config</span></a>
+      <a href="#p11" class="toc-item"><span class="num">11</span><span class="name">Circuit <em>breaker</em></span><span class="tag hard">primitive</span></a>
+      <a href="#p12" class="toc-item"><span class="num">12</span><span class="name">In-memory <em>job queue</em></span><span class="tag hard">primitive</span></a>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- PROBLEM 01 -->
+  <!-- ============================================ -->
+  <section class="problem" id="p01">
+    <div class="problem-head">
+      <div class="num">№ 01</div>
+      <h2>Top-<em>K</em> IPs from access logs</h2>
+      <div class="meta">
+        <strong>~30 min</strong>
+        Parsing
+        <span class="difficulty">Warm-up</span>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Prompt</div>
+      <div class="content">
+        <p>Given a path to an Apache/nginx-style access log file, return the top <code>K</code> IP addresses by request count. Each line looks like:</p>
+        <pre class="code"><code>192.168.1.1 - - [10/Oct/2023:13:55:36 +0000] "GET /api/v1/users HTTP/1.1" 200 1234</code></pre>
+        <p>Some lines will be malformed. The file may be large enough that loading it all into memory is not ideal. Return results sorted by count descending; ties broken by IP lexicographically.</p>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Clarify</div>
+      <div class="content">
+        <ul>
+          <li>What constitutes "malformed"? (Missing fields, bad IP format, both?)</li>
+          <li>Should IPv6 be supported?</li>
+          <li>Is <code>K</code> always small relative to unique IPs? (Affects whether we keep all counts or use a min-heap.)</li>
+          <li>Is the file gzipped? Streaming over network?</li>
+        </ul>
+
+        <details class="hints">
+          <summary>Hints</summary>
+          <ol>
+            <li>Stream the file line-by-line — never load it all into memory.</li>
+            <li>The first whitespace-separated token is the IP. Extract it without parsing the full log structure.</li>
+            <li>Use a <code>HashMap&lt;String, Long&gt;</code> for counts, then a <code>PriorityQueue</code> of size <code>K</code> for top-K extraction. <code>O(N log K)</code>.</li>
+            <li>Skip malformed lines silently but track a count — interviewers love seeing observability instincts.</li>
+          </ol>
+        </details>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Solution</div>
+      <div class="content">
+<pre class="code"><code><span class="tk-k">import</span> java.io.*;
+<span class="tk-k">import</span> java.nio.file.*;
+<span class="tk-k">import</span> java.util.*;
+<span class="tk-k">import</span> java.util.stream.*;
+
+<span class="tk-k">public class</span> <span class="tk-t">TopKIps</span> {
+
+    <span class="tk-k">public record</span> <span class="tk-t">IpCount</span>(<span class="tk-t">String</span> ip, <span class="tk-k">long</span> count) {}
+
+    <span class="tk-k">public static</span> <span class="tk-t">List</span>&lt;<span class="tk-t">IpCount</span>&gt; <span class="tk-n">topK</span>(<span class="tk-t">Path</span> logFile, <span class="tk-k">int</span> k) <span class="tk-k">throws</span> <span class="tk-t">IOException</span> {
+        <span class="tk-k">if</span> (k &lt;= <span class="tk-n">0</span>) <span class="tk-k">throw new</span> <span class="tk-t">IllegalArgumentException</span>(<span class="tk-s">"k must be positive"</span>);
+
+        <span class="tk-t">Map</span>&lt;<span class="tk-t">String</span>, <span class="tk-t">Long</span>&gt; counts = <span class="tk-k">new</span> <span class="tk-t">HashMap</span>&lt;&gt;();
+        <span class="tk-k">long</span> malformed = <span class="tk-n">0</span>;
+
+        <span class="tk-k">try</span> (<span class="tk-t">BufferedReader</span> reader = <span class="tk-t">Files</span>.<span class="tk-n">newBufferedReader</span>(logFile)) {
+            <span class="tk-t">String</span> line;
+            <span class="tk-k">while</span> ((line = reader.<span class="tk-n">readLine</span>()) != <span class="tk-k">null</span>) {
+                <span class="tk-t">String</span> ip = <span class="tk-n">extractIp</span>(line);
+                <span class="tk-k">if</span> (ip == <span class="tk-k">null</span>) { malformed++; <span class="tk-k">continue</span>; }
+                counts.<span class="tk-n">merge</span>(ip, <span class="tk-n">1L</span>, <span class="tk-t">Long</span>::<span class="tk-n">sum</span>);
+            }
+        }
+
+        <span class="tk-k">if</span> (malformed &gt; <span class="tk-n">0</span>) {
+            <span class="tk-t">System</span>.<span class="tk-n">err</span>.<span class="tk-n">printf</span>(<span class="tk-s">"skipped %d malformed lines%n"</span>, malformed);
+        }
+
+        <span class="tk-c">// Min-heap of size k. Smaller counts get evicted first;</span>
+        <span class="tk-c">// for ties, the lexicographically LARGER IP gets evicted</span>
+        <span class="tk-c">// (so the smaller IP stays — matching our final tiebreak rule).</span>
+        <span class="tk-t">Comparator</span>&lt;<span class="tk-t">IpCount</span>&gt; heapOrder = <span class="tk-t">Comparator</span>
+            .&lt;<span class="tk-t">IpCount</span>&gt;<span class="tk-n">comparingLong</span>(<span class="tk-t">IpCount</span>::<span class="tk-n">count</span>)
+            .<span class="tk-n">thenComparing</span>(<span class="tk-t">IpCount</span>::<span class="tk-n">ip</span>, <span class="tk-t">Comparator</span>.<span class="tk-n">reverseOrder</span>());
+
+        <span class="tk-t">PriorityQueue</span>&lt;<span class="tk-t">IpCount</span>&gt; heap = <span class="tk-k">new</span> <span class="tk-t">PriorityQueue</span>&lt;&gt;(heapOrder);
+
+        <span class="tk-k">for</span> (<span class="tk-k">var</span> entry : counts.<span class="tk-n">entrySet</span>()) {
+            heap.<span class="tk-n">offer</span>(<span class="tk-k">new</span> <span class="tk-t">IpCount</span>(entry.<span class="tk-n">getKey</span>(), entry.<span class="tk-n">getValue</span>()));
+            <span class="tk-k">if</span> (heap.<span class="tk-n">size</span>() &gt; k) heap.<span class="tk-n">poll</span>();
+        }
+
+        <span class="tk-t">List</span>&lt;<span class="tk-t">IpCount</span>&gt; result = <span class="tk-k">new</span> <span class="tk-t">ArrayList</span>&lt;&gt;(heap);
+        result.<span class="tk-n">sort</span>(<span class="tk-t">Comparator</span>
+            .<span class="tk-n">comparingLong</span>(<span class="tk-t">IpCount</span>::<span class="tk-n">count</span>).<span class="tk-n">reversed</span>()
+            .<span class="tk-n">thenComparing</span>(<span class="tk-t">IpCount</span>::<span class="tk-n">ip</span>));
+        <span class="tk-k">return</span> result;
+    }
+
+    <span class="tk-k">private static</span> <span class="tk-t">String</span> <span class="tk-n">extractIp</span>(<span class="tk-t">String</span> line) {
+        <span class="tk-k">if</span> (line == <span class="tk-k">null</span> || line.<span class="tk-n">isBlank</span>()) <span class="tk-k">return null</span>;
+        <span class="tk-k">int</span> sp = line.<span class="tk-n">indexOf</span>(<span class="tk-s">' '</span>);
+        <span class="tk-k">if</span> (sp &lt;= <span class="tk-n">0</span>) <span class="tk-k">return null</span>;
+        <span class="tk-t">String</span> token = line.<span class="tk-n">substring</span>(<span class="tk-n">0</span>, sp);
+        <span class="tk-k">return</span> <span class="tk-n">isValidIp</span>(token) ? token : <span class="tk-k">null</span>;
+    }
+
+    <span class="tk-k">private static boolean</span> <span class="tk-n">isValidIp</span>(<span class="tk-t">String</span> s) {
+        <span class="tk-t">String</span>[] parts = s.<span class="tk-n">split</span>(<span class="tk-s">"\\."</span>);
+        <span class="tk-k">if</span> (parts.<span class="tk-n">length</span> != <span class="tk-n">4</span>) <span class="tk-k">return false</span>;
+        <span class="tk-k">for</span> (<span class="tk-t">String</span> p : parts) {
+            <span class="tk-k">try</span> {
+                <span class="tk-k">int</span> n = <span class="tk-t">Integer</span>.<span class="tk-n">parseInt</span>(p);
+                <span class="tk-k">if</span> (n &lt; <span class="tk-n">0</span> || n &gt; <span class="tk-n">255</span>) <span class="tk-k">return false</span>;
+            } <span class="tk-k">catch</span> (<span class="tk-t">NumberFormatException</span> e) { <span class="tk-k">return false</span>; }
+        }
+        <span class="tk-k">return true</span>;
+    }
+}</code></pre>
+
+        <div class="discussion">
+          <div class="label-row">▸ Discussion / Follow-ups</div>
+          <ul>
+            <li><strong>Scale to 10× the data?</strong> Single-machine: same approach, the bottleneck is disk I/O. Multi-machine: count per shard, merge counters, then top-K on the merged map. Or use Count-Min Sketch for approximate counts with bounded memory.</li>
+            <li><strong>Concurrent writers?</strong> Switch <code>HashMap</code> → <code>ConcurrentHashMap</code> with <code>compute</code>/<code>merge</code>; parallelize the line-reading with a producer-consumer queue.</li>
+            <li><strong>Why not <code>Stream.sorted().limit(k)</code>?</strong> That's <code>O(N log N)</code>; the heap is <code>O(N log K)</code> which matters when K ≪ N.</li>
+            <li><strong>What if the file is gzipped?</strong> Wrap the stream: <code>new BufferedReader(new InputStreamReader(new GZIPInputStream(...)))</code>.</li>
+          </ul>
+        </div>
+
+        <a href="#top" class="top-link">↑ Back to top</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- PROBLEM 02 -->
+  <!-- ============================================ -->
+  <section class="problem" id="p02">
+    <div class="problem-head">
+      <div class="num">№ 02</div>
+      <h2>Sliding-window <em>error rate</em></h2>
+      <div class="meta">
+        <strong>~40 min</strong>
+        Parsing
+        <span class="difficulty med">Medium</span>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Prompt</div>
+      <div class="content">
+        <p>You're building a small monitoring tool. Given a stream of request events, each with a timestamp (epoch millis) and an HTTP status code, produce a function that returns the <em class="term">error rate</em> (4xx + 5xx as a fraction of total) over the last <code>N</code> seconds. The function will be called frequently — make it fast.</p>
+        <p>Events arrive roughly in order but not strictly so. Old events (older than the window) should be evicted automatically.</p>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Clarify</div>
+      <div class="content">
+        <ul>
+          <li>What's the expected event rate? (Affects whether per-event eviction is fine or we need bucketing.)</li>
+          <li>Is "error" only 5xx, or also 4xx? Is 429 an error?</li>
+          <li>How out-of-order can events be? (1s? 1 minute?)</li>
+          <li>Single-threaded calls or concurrent reads/writes?</li>
+        </ul>
+
+        <details class="hints">
+          <summary>Hints</summary>
+          <ol>
+            <li>Naïve approach: <code>Deque&lt;Event&gt;</code>, push on record, pop expired on every query. Fine for low rates.</li>
+            <li>Better: bucket by second. Maintain a ring of buckets each holding (total, errors). <code>O(1)</code> writes and queries when window is in seconds.</li>
+            <li>Out-of-order events: bucket index = <code>floor(timestamp / 1000) % windowSize</code>, but you need to detect stale buckets and reset them when the second wraps.</li>
+            <li>For thread-safety, the simple deque version with a single lock is often plenty.</li>
+          </ol>
+        </details>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Solution</div>
+      <div class="content">
+<pre class="code"><code><span class="tk-k">import</span> java.util.*;
+<span class="tk-k">import</span> java.util.concurrent.locks.*;
+
+<span class="tk-c">// Bucketed sliding window. O(1) record, O(W) query (W = window seconds).</span>
+<span class="tk-c">// For larger windows, query can also be O(1) by maintaining running sums.</span>
+<span class="tk-k">public class</span> <span class="tk-t">ErrorRateWindow</span> {
+
+    <span class="tk-k">private record</span> <span class="tk-t">Bucket</span>(<span class="tk-k">long</span> epochSec, <span class="tk-k">long</span> total, <span class="tk-k">long</span> errors) {}
+
+    <span class="tk-k">private final int</span> windowSec;
+    <span class="tk-k">private final</span> <span class="tk-t">Bucket</span>[] buckets;
+    <span class="tk-k">private final</span> <span class="tk-t">ReentrantLock</span> lock = <span class="tk-k">new</span> <span class="tk-t">ReentrantLock</span>();
+
+    <span class="tk-k">public</span> <span class="tk-t">ErrorRateWindow</span>(<span class="tk-k">int</span> windowSec) {
+        <span class="tk-k">if</span> (windowSec &lt;= <span class="tk-n">0</span>) <span class="tk-k">throw new</span> <span class="tk-t">IllegalArgumentException</span>();
+        <span class="tk-k">this</span>.windowSec = windowSec;
+        <span class="tk-k">this</span>.buckets = <span class="tk-k">new</span> <span class="tk-t">Bucket</span>[windowSec];
+        <span class="tk-t">Arrays</span>.<span class="tk-n">fill</span>(<span class="tk-k">this</span>.buckets, <span class="tk-k">new</span> <span class="tk-t">Bucket</span>(<span class="tk-n">-1</span>, <span class="tk-n">0</span>, <span class="tk-n">0</span>));
+    }
+
+    <span class="tk-k">public void</span> <span class="tk-n">record</span>(<span class="tk-k">long</span> tsMillis, <span class="tk-k">int</span> status) {
+        <span class="tk-k">long</span> sec = tsMillis / <span class="tk-n">1000</span>;
+        <span class="tk-k">int</span> idx = (<span class="tk-k">int</span>) <span class="tk-t">Math</span>.<span class="tk-n">floorMod</span>(sec, windowSec);
+        <span class="tk-k">boolean</span> isError = status &gt;= <span class="tk-n">400</span>;
+
+        lock.<span class="tk-n">lock</span>();
+        <span class="tk-k">try</span> {
+            <span class="tk-t">Bucket</span> b = buckets[idx];
+            <span class="tk-k">if</span> (b.<span class="tk-n">epochSec</span>() != sec) {
+                <span class="tk-c">// stale bucket -- this second wrapped around, reset it</span>
+                buckets[idx] = <span class="tk-k">new</span> <span class="tk-t">Bucket</span>(sec, <span class="tk-n">1</span>, isError ? <span class="tk-n">1</span> : <span class="tk-n">0</span>);
+            } <span class="tk-k">else</span> {
+                buckets[idx] = <span class="tk-k">new</span> <span class="tk-t">Bucket</span>(sec, b.<span class="tk-n">total</span>() + <span class="tk-n">1</span>,
+                    b.<span class="tk-n">errors</span>() + (isError ? <span class="tk-n">1</span> : <span class="tk-n">0</span>));
+            }
+        } <span class="tk-k">finally</span> { lock.<span class="tk-n">unlock</span>(); }
+    }
+
+    <span class="tk-k">public double</span> <span class="tk-n">errorRate</span>(<span class="tk-k">long</span> nowMillis) {
+        <span class="tk-k">long</span> nowSec = nowMillis / <span class="tk-n">1000</span>;
+        <span class="tk-k">long</span> oldest = nowSec - windowSec + <span class="tk-n">1</span>;
+        <span class="tk-k">long</span> total = <span class="tk-n">0</span>, errors = <span class="tk-n">0</span>;
+
+        lock.<span class="tk-n">lock</span>();
+        <span class="tk-k">try</span> {
+            <span class="tk-k">for</span> (<span class="tk-t">Bucket</span> b : buckets) {
+                <span class="tk-k">if</span> (b.<span class="tk-n">epochSec</span>() &gt;= oldest &amp;&amp; b.<span class="tk-n">epochSec</span>() &lt;= nowSec) {
+                    total += b.<span class="tk-n">total</span>();
+                    errors += b.<span class="tk-n">errors</span>();
+                }
+            }
+        } <span class="tk-k">finally</span> { lock.<span class="tk-n">unlock</span>(); }
+
+        <span class="tk-k">return</span> total == <span class="tk-n">0</span> ? <span class="tk-n">0.0</span> : (<span class="tk-k">double</span>) errors / total;
+    }
+}</code></pre>
+
+        <div class="discussion">
+          <div class="label-row">▸ Discussion / Follow-ups</div>
+          <ul>
+            <li><strong>Why bucketing?</strong> A naïve deque grows with traffic; the bucket array uses fixed memory regardless of QPS.</li>
+            <li><strong>O(1) queries?</strong> Maintain running totals updated on bucket reset. Trade some complexity for constant-time reads.</li>
+            <li><strong>Sub-second windows?</strong> Use millisecond buckets — same structure, more memory.</li>
+            <li><strong>Lock contention?</strong> Per-bucket locks, or use <code>LongAdder</code>s in each bucket. At very high rates, consider <code>StampedLock</code> or sharded counters.</li>
+          </ul>
+        </div>
+
+        <a href="#top" class="top-link">↑ Back to top</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- PROBLEM 03 -->
+  <!-- ============================================ -->
+  <section class="problem" id="p03">
+    <div class="problem-head">
+      <div class="num">№ 03</div>
+      <h2>Thread-safe <em>LRU cache</em></h2>
+      <div class="meta">
+        <strong>~40 min</strong>
+        Primitive
+        <span class="difficulty med">Medium</span>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Prompt</div>
+      <div class="content">
+        <p>Implement a fixed-capacity LRU cache with <code>get(key)</code> and <code>put(key, value)</code>. Both must be <code>O(1)</code>. The cache must be safe to use from multiple threads. Optional: support a per-entry TTL (expired entries should not be returned by <code>get</code>).</p>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Clarify</div>
+      <div class="content">
+        <ul>
+          <li>Strict O(1) under concurrency, or amortized? (Strict O(1) with concurrency is hard; amortized is realistic.)</li>
+          <li>Should <code>get</code> on an expired entry just return <code>null</code>, or also evict?</li>
+          <li>Are nulls valid values, or are they "not found"?</li>
+          <li>What's the read/write ratio? (Affects whether to use <code>ReadWriteLock</code> vs single mutex.)</li>
+        </ul>
+
+        <details class="hints">
+          <summary>Hints</summary>
+          <ol>
+            <li>Classic structure: <code>HashMap&lt;K, Node&gt;</code> + doubly-linked list. Move-to-front on access.</li>
+            <li>For thread-safety, the simplest correct answer is a single <code>ReentrantLock</code> wrapping all mutations. Don't reach for lock-free unless asked.</li>
+            <li>For bonus points: mention <code>LinkedHashMap</code> with <code>accessOrder=true</code> as a quick-and-dirty alternative.</li>
+            <li>TTL: store <code>expiresAt</code> on each node, check on <code>get</code>.</li>
+          </ol>
+        </details>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Solution</div>
+      <div class="content">
+<pre class="code"><code><span class="tk-k">import</span> java.util.*;
+<span class="tk-k">import</span> java.util.concurrent.locks.*;
+
+<span class="tk-k">public class</span> <span class="tk-t">LruCache</span>&lt;<span class="tk-t">K</span>, <span class="tk-t">V</span>&gt; {
+
+    <span class="tk-k">private static final class</span> <span class="tk-t">Node</span>&lt;<span class="tk-t">K</span>, <span class="tk-t">V</span>&gt; {
+        <span class="tk-k">final</span> <span class="tk-t">K</span> key;
+        <span class="tk-t">V</span> value;
+        <span class="tk-k">long</span> expiresAt;          <span class="tk-c">// Long.MAX_VALUE = no TTL</span>
+        <span class="tk-t">Node</span>&lt;<span class="tk-t">K</span>, <span class="tk-t">V</span>&gt; prev, next;
+        <span class="tk-t">Node</span>(<span class="tk-t">K</span> k, <span class="tk-t">V</span> v, <span class="tk-k">long</span> exp) { key = k; value = v; expiresAt = exp; }
+    }
+
+    <span class="tk-k">private final int</span> capacity;
+    <span class="tk-k">private final</span> <span class="tk-t">Map</span>&lt;<span class="tk-t">K</span>, <span class="tk-t">Node</span>&lt;<span class="tk-t">K</span>, <span class="tk-t">V</span>&gt;&gt; map = <span class="tk-k">new</span> <span class="tk-t">HashMap</span>&lt;&gt;();
+    <span class="tk-k">private final</span> <span class="tk-t">Node</span>&lt;<span class="tk-t">K</span>, <span class="tk-t">V</span>&gt; head = <span class="tk-k">new</span> <span class="tk-t">Node</span>&lt;&gt;(<span class="tk-k">null</span>, <span class="tk-k">null</span>, <span class="tk-n">0</span>);  <span class="tk-c">// MRU sentinel</span>
+    <span class="tk-k">private final</span> <span class="tk-t">Node</span>&lt;<span class="tk-t">K</span>, <span class="tk-t">V</span>&gt; tail = <span class="tk-k">new</span> <span class="tk-t">Node</span>&lt;&gt;(<span class="tk-k">null</span>, <span class="tk-k">null</span>, <span class="tk-n">0</span>);  <span class="tk-c">// LRU sentinel</span>
+    <span class="tk-k">private final</span> <span class="tk-t">ReentrantLock</span> lock = <span class="tk-k">new</span> <span class="tk-t">ReentrantLock</span>();
+
+    <span class="tk-k">public</span> <span class="tk-t">LruCache</span>(<span class="tk-k">int</span> capacity) {
+        <span class="tk-k">if</span> (capacity &lt;= <span class="tk-n">0</span>) <span class="tk-k">throw new</span> <span class="tk-t">IllegalArgumentException</span>();
+        <span class="tk-k">this</span>.capacity = capacity;
+        head.next = tail; tail.prev = head;
+    }
+
+    <span class="tk-k">public</span> <span class="tk-t">V</span> <span class="tk-n">get</span>(<span class="tk-t">K</span> key) {
+        lock.<span class="tk-n">lock</span>();
+        <span class="tk-k">try</span> {
+            <span class="tk-t">Node</span>&lt;<span class="tk-t">K</span>, <span class="tk-t">V</span>&gt; n = map.<span class="tk-n">get</span>(key);
+            <span class="tk-k">if</span> (n == <span class="tk-k">null</span>) <span class="tk-k">return null</span>;
+            <span class="tk-k">if</span> (<span class="tk-t">System</span>.<span class="tk-n">currentTimeMillis</span>() &gt;= n.expiresAt) {
+                evict(n);
+                <span class="tk-k">return null</span>;
+            }
+            moveToFront(n);
+            <span class="tk-k">return</span> n.value;
+        } <span class="tk-k">finally</span> { lock.<span class="tk-n">unlock</span>(); }
+    }
+
+    <span class="tk-k">public void</span> <span class="tk-n">put</span>(<span class="tk-t">K</span> key, <span class="tk-t">V</span> value) { <span class="tk-n">put</span>(key, value, <span class="tk-t">Long</span>.<span class="tk-n">MAX_VALUE</span>); }
+
+    <span class="tk-k">public void</span> <span class="tk-n">put</span>(<span class="tk-t">K</span> key, <span class="tk-t">V</span> value, <span class="tk-k">long</span> ttlMillis) {
+        <span class="tk-k">long</span> exp = ttlMillis == <span class="tk-t">Long</span>.<span class="tk-n">MAX_VALUE</span>
+            ? <span class="tk-t">Long</span>.<span class="tk-n">MAX_VALUE</span>
+            : <span class="tk-t">System</span>.<span class="tk-n">currentTimeMillis</span>() + ttlMillis;
+
+        lock.<span class="tk-n">lock</span>();
+        <span class="tk-k">try</span> {
+            <span class="tk-t">Node</span>&lt;<span class="tk-t">K</span>, <span class="tk-t">V</span>&gt; existing = map.<span class="tk-n">get</span>(key);
+            <span class="tk-k">if</span> (existing != <span class="tk-k">null</span>) {
+                existing.value = value;
+                existing.expiresAt = exp;
+                moveToFront(existing);
+                <span class="tk-k">return</span>;
+            }
+            <span class="tk-t">Node</span>&lt;<span class="tk-t">K</span>, <span class="tk-t">V</span>&gt; n = <span class="tk-k">new</span> <span class="tk-t">Node</span>&lt;&gt;(key, value, exp);
+            map.<span class="tk-n">put</span>(key, n);
+            addToFront(n);
+            <span class="tk-k">if</span> (map.<span class="tk-n">size</span>() &gt; capacity) evict(tail.prev);
+        } <span class="tk-k">finally</span> { lock.<span class="tk-n">unlock</span>(); }
+    }
+
+    <span class="tk-k">private void</span> <span class="tk-n">addToFront</span>(<span class="tk-t">Node</span>&lt;<span class="tk-t">K</span>, <span class="tk-t">V</span>&gt; n) {
+        n.next = head.next; n.prev = head;
+        head.next.prev = n; head.next = n;
+    }
+    <span class="tk-k">private void</span> <span class="tk-n">unlink</span>(<span class="tk-t">Node</span>&lt;<span class="tk-t">K</span>, <span class="tk-t">V</span>&gt; n) {
+        n.prev.next = n.next; n.next.prev = n.prev;
+    }
+    <span class="tk-k">private void</span> <span class="tk-n">moveToFront</span>(<span class="tk-t">Node</span>&lt;<span class="tk-t">K</span>, <span class="tk-t">V</span>&gt; n) { unlink(n); addToFront(n); }
+    <span class="tk-k">private void</span> <span class="tk-n">evict</span>(<span class="tk-t">Node</span>&lt;<span class="tk-t">K</span>, <span class="tk-t">V</span>&gt; n) { unlink(n); map.<span class="tk-n">remove</span>(n.key); }
+}</code></pre>
+
+        <div class="discussion">
+          <div class="label-row">▸ Discussion / Follow-ups</div>
+          <ul>
+            <li><strong>Read-heavy workload?</strong> A single mutex is a contention point. Options: <code>ReadWriteLock</code> (but moves-to-front are writes!), striped locking by hash bucket, or Caffeine-style ring-buffer batching of access events.</li>
+            <li><strong>Why not <code>LinkedHashMap</code>?</strong> Override <code>removeEldestEntry</code>. Quick to write, but doesn't give you TTL or fine-grained concurrency.</li>
+            <li><strong>Production-grade?</strong> Use Caffeine. Mention it — interviewers love hearing the candidate has reached for a real library.</li>
+            <li><strong>Memory pressure?</strong> Add a size-aware eviction (weight per entry) or soft references.</li>
+          </ul>
+        </div>
+
+        <a href="#top" class="top-link">↑ Back to top</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- PROBLEM 04 -->
+  <!-- ============================================ -->
+  <section class="problem" id="p04">
+    <div class="problem-head">
+      <div class="num">№ 04</div>
+      <h2>Token-bucket <em>rate limiter</em></h2>
+      <div class="meta">
+        <strong>~35 min</strong>
+        Primitive
+        <span class="difficulty med">Medium</span>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Prompt</div>
+      <div class="content">
+        <p>Build a per-user rate limiter using the <em class="term">token bucket</em> algorithm. API: <code>boolean tryAcquire(String userId)</code>. Each user has a bucket of capacity <code>C</code> tokens that refills at <code>R</code> tokens per second. <code>tryAcquire</code> returns <code>true</code> if a token was available and consumed, <code>false</code> otherwise. Thread-safe.</p>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Clarify</div>
+      <div class="content">
+        <ul>
+          <li>Same limit for every user, or per-tier limits?</li>
+          <li>What happens to inactive users — is unbounded memory growth a concern?</li>
+          <li>Single-instance, or distributed across servers? (Distributed needs Redis-backed.)</li>
+          <li>Should we charge variable token costs (e.g. expensive endpoints cost more)?</li>
+        </ul>
+
+        <details class="hints">
+          <summary>Hints</summary>
+          <ol>
+            <li>Don't use a background thread to refill. Compute tokens lazily on each request from elapsed time since last update.</li>
+            <li>Per-user bucket state in a <code>ConcurrentHashMap</code>. Use <code>computeIfAbsent</code> + per-bucket synchronization.</li>
+            <li>For inactive-user cleanup, mention TTL eviction or a Caffeine cache as the bucket store.</li>
+          </ol>
+        </details>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Solution</div>
+      <div class="content">
+<pre class="code"><code><span class="tk-k">import</span> java.util.concurrent.*;
+
+<span class="tk-k">public class</span> <span class="tk-t">TokenBucketLimiter</span> {
+
+    <span class="tk-k">private static final class</span> <span class="tk-t">Bucket</span> {
+        <span class="tk-k">double</span> tokens;
+        <span class="tk-k">long</span> lastRefillNanos;
+        <span class="tk-t">Bucket</span>(<span class="tk-k">double</span> tokens, <span class="tk-k">long</span> nanos) {
+            <span class="tk-k">this</span>.tokens = tokens;
+            <span class="tk-k">this</span>.lastRefillNanos = nanos;
+        }
+    }
+
+    <span class="tk-k">private final double</span> capacity;
+    <span class="tk-k">private final double</span> refillPerNano;
+    <span class="tk-k">private final</span> <span class="tk-t">ConcurrentMap</span>&lt;<span class="tk-t">String</span>, <span class="tk-t">Bucket</span>&gt; buckets = <span class="tk-k">new</span> <span class="tk-t">ConcurrentHashMap</span>&lt;&gt;();
+
+    <span class="tk-k">public</span> <span class="tk-t">TokenBucketLimiter</span>(<span class="tk-k">double</span> capacity, <span class="tk-k">double</span> refillPerSecond) {
+        <span class="tk-k">if</span> (capacity &lt;= <span class="tk-n">0</span> || refillPerSecond &lt;= <span class="tk-n">0</span>) {
+            <span class="tk-k">throw new</span> <span class="tk-t">IllegalArgumentException</span>();
+        }
+        <span class="tk-k">this</span>.capacity = capacity;
+        <span class="tk-k">this</span>.refillPerNano = refillPerSecond / <span class="tk-n">1_000_000_000.0</span>;
+    }
+
+    <span class="tk-k">public boolean</span> <span class="tk-n">tryAcquire</span>(<span class="tk-t">String</span> userId) { <span class="tk-k">return</span> <span class="tk-n">tryAcquire</span>(userId, <span class="tk-n">1.0</span>); }
+
+    <span class="tk-k">public boolean</span> <span class="tk-n">tryAcquire</span>(<span class="tk-t">String</span> userId, <span class="tk-k">double</span> permits) {
+        <span class="tk-k">long</span> now = <span class="tk-t">System</span>.<span class="tk-n">nanoTime</span>();
+        <span class="tk-t">Bucket</span> b = buckets.<span class="tk-n">computeIfAbsent</span>(userId,
+            k -&gt; <span class="tk-k">new</span> <span class="tk-t">Bucket</span>(capacity, now));
+
+        <span class="tk-c">// Per-bucket lock. Synchronizing on the bucket object itself keeps</span>
+        <span class="tk-c">// contention scoped to a single user, not the whole limiter.</span>
+        <span class="tk-k">synchronized</span> (b) {
+            <span class="tk-k">long</span> elapsed = now - b.lastRefillNanos;
+            <span class="tk-k">if</span> (elapsed &gt; <span class="tk-n">0</span>) {
+                b.tokens = <span class="tk-t">Math</span>.<span class="tk-n">min</span>(capacity, b.tokens + elapsed * refillPerNano);
+                b.lastRefillNanos = now;
+            }
+            <span class="tk-k">if</span> (b.tokens &gt;= permits) {
+                b.tokens -= permits;
+                <span class="tk-k">return true</span>;
+            }
+            <span class="tk-k">return false</span>;
+        }
+    }
+}</code></pre>
+
+        <div class="discussion">
+          <div class="label-row">▸ Discussion / Follow-ups</div>
+          <ul>
+            <li><strong>Why <code>nanoTime</code> not <code>currentTimeMillis</code>?</strong> Monotonic — won't go backward on NTP adjustments. Critical for time-since calculations.</li>
+            <li><strong>Memory growth?</strong> Wrap <code>buckets</code> in a Caffeine cache with expire-after-access; idle users' buckets get GC'd.</li>
+            <li><strong>Distributed?</strong> Move state to Redis. Use a Lua script for atomic check-and-decrement, or use Redis's built-in <code>CL.THROTTLE</code> from RedisCell.</li>
+            <li><strong>Token bucket vs leaky bucket vs sliding window?</strong> Token bucket allows bursts up to capacity; leaky bucket smooths traffic; sliding window log is more accurate but memory-heavy.</li>
+            <li><strong>Why double tokens?</strong> Allows fractional refill rates (e.g. 0.5/s) and variable-cost permits.</li>
+          </ul>
+        </div>
+
+        <a href="#top" class="top-link">↑ Back to top</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- PROBLEM 05 -->
+  <!-- ============================================ -->
+  <section class="problem" id="p05">
+    <div class="problem-head">
+      <div class="num">№ 05</div>
+      <h2>Retry with <em>exponential backoff</em></h2>
+      <div class="meta">
+        <strong>~30 min</strong>
+        Primitive
+        <span class="difficulty">Warm-up</span>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Prompt</div>
+      <div class="content">
+        <p>Implement a generic retry helper: <code>&lt;T&gt; T executeWithRetry(Callable&lt;T&gt; op, RetryPolicy policy)</code>. It should retry transient failures with exponential backoff and full jitter. Non-retriable exceptions should propagate immediately. The policy specifies max attempts, base delay, max delay, and which exceptions are retriable.</p>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Clarify</div>
+      <div class="content">
+        <ul>
+          <li>What constitutes "retriable"? (Exception type list, predicate, or explicit error codes?)</li>
+          <li>Full jitter, equal jitter, decorrelated jitter? (Default to full jitter — AWS recommendation.)</li>
+          <li>Should it support async (<code>CompletableFuture</code>) or just sync?</li>
+          <li>What about deadline-based stopping (total budget)?</li>
+        </ul>
+
+        <details class="hints">
+          <summary>Hints</summary>
+          <ol>
+            <li>Full jitter: <code>delay = random(0, min(max, base × 2^attempt))</code>. Prevents thundering herd.</li>
+            <li>Use <code>InterruptedException</code> handling correctly: re-set the interrupt flag.</li>
+            <li>Builder pattern for <code>RetryPolicy</code> reads better than five-parameter constructors.</li>
+            <li>Throw a wrapping exception with the last cause if all attempts exhausted — preserves the stack trace.</li>
+          </ol>
+        </details>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Solution</div>
+      <div class="content">
+<pre class="code"><code><span class="tk-k">import</span> java.time.*;
+<span class="tk-k">import</span> java.util.concurrent.*;
+<span class="tk-k">import</span> java.util.function.*;
+
+<span class="tk-k">public class</span> <span class="tk-t">Retry</span> {
+
+    <span class="tk-k">public record</span> <span class="tk-t">Policy</span>(
+        <span class="tk-k">int</span> maxAttempts,
+        <span class="tk-t">Duration</span> baseDelay,
+        <span class="tk-t">Duration</span> maxDelay,
+        <span class="tk-t">Predicate</span>&lt;<span class="tk-t">Throwable</span>&gt; isRetriable
+    ) {
+        <span class="tk-k">public static</span> <span class="tk-t">Policy</span> <span class="tk-n">defaults</span>() {
+            <span class="tk-k">return new</span> <span class="tk-t">Policy</span>(<span class="tk-n">3</span>,
+                <span class="tk-t">Duration</span>.<span class="tk-n">ofMillis</span>(<span class="tk-n">100</span>),
+                <span class="tk-t">Duration</span>.<span class="tk-n">ofSeconds</span>(<span class="tk-n">10</span>),
+                t -&gt; t <span class="tk-k">instanceof</span> <span class="tk-t">IOException</span> ||
+                     t <span class="tk-k">instanceof</span> <span class="tk-t">TimeoutException</span>);
+        }
+    }
+
+    <span class="tk-k">public static class</span> <span class="tk-t">RetryExhaustedException</span> <span class="tk-k">extends</span> <span class="tk-t">RuntimeException</span> {
+        <span class="tk-k">public</span> <span class="tk-t">RetryExhaustedException</span>(<span class="tk-t">String</span> msg, <span class="tk-t">Throwable</span> cause) {
+            <span class="tk-k">super</span>(msg, cause);
+        }
+    }
+
+    <span class="tk-k">public static</span> &lt;<span class="tk-t">T</span>&gt; <span class="tk-t">T</span> <span class="tk-n">execute</span>(<span class="tk-t">Callable</span>&lt;<span class="tk-t">T</span>&gt; op, <span class="tk-t">Policy</span> policy) <span class="tk-k">throws</span> <span class="tk-t">Exception</span> {
+        <span class="tk-t">Throwable</span> last = <span class="tk-k">null</span>;
+        <span class="tk-k">for</span> (<span class="tk-k">int</span> attempt = <span class="tk-n">0</span>; attempt &lt; policy.maxAttempts(); attempt++) {
+            <span class="tk-k">try</span> {
+                <span class="tk-k">return</span> op.<span class="tk-n">call</span>();
+            } <span class="tk-k">catch</span> (<span class="tk-t">InterruptedException</span> ie) {
+                <span class="tk-t">Thread</span>.<span class="tk-n">currentThread</span>().<span class="tk-n">interrupt</span>();
+                <span class="tk-k">throw</span> ie;
+            } <span class="tk-k">catch</span> (<span class="tk-t">Exception</span> e) {
+                <span class="tk-k">if</span> (!policy.isRetriable().<span class="tk-n">test</span>(e)) <span class="tk-k">throw</span> e;
+                last = e;
+                <span class="tk-k">if</span> (attempt == policy.maxAttempts() - <span class="tk-n">1</span>) <span class="tk-k">break</span>;
+                sleepWithJitter(attempt, policy);
+            }
+        }
+        <span class="tk-k">throw new</span> <span class="tk-t">RetryExhaustedException</span>(
+            <span class="tk-s">"giving up after "</span> + policy.maxAttempts() + <span class="tk-s">" attempts"</span>, last);
+    }
+
+    <span class="tk-k">private static void</span> <span class="tk-n">sleepWithJitter</span>(<span class="tk-k">int</span> attempt, <span class="tk-t">Policy</span> p)
+            <span class="tk-k">throws</span> <span class="tk-t">InterruptedException</span> {
+        <span class="tk-k">long</span> exp = <span class="tk-t">Math</span>.<span class="tk-n">min</span>(
+            p.maxDelay().<span class="tk-n">toMillis</span>(),
+            p.baseDelay().<span class="tk-n">toMillis</span>() * (<span class="tk-n">1L</span> &lt;&lt; attempt));
+        <span class="tk-c">// Full jitter: uniform in [0, exp]</span>
+        <span class="tk-k">long</span> sleep = <span class="tk-t">ThreadLocalRandom</span>.<span class="tk-n">current</span>().<span class="tk-n">nextLong</span>(exp + <span class="tk-n">1</span>);
+        <span class="tk-t">Thread</span>.<span class="tk-n">sleep</span>(sleep);
+    }
+}</code></pre>
+
+        <div class="discussion">
+          <div class="label-row">▸ Discussion / Follow-ups</div>
+          <ul>
+            <li><strong>Why full jitter?</strong> Equal jitter still synchronizes the thundering herd partially. Full jitter spreads retries uniformly. Cite the AWS architecture blog if asked.</li>
+            <li><strong>Bit-shift overflow?</strong> <code>1L &lt;&lt; attempt</code> for attempt ≥ 63 overflows. Guard with <code>min(maxDelay, ...)</code> or cap the exponent.</li>
+            <li><strong>Async version?</strong> Return <code>CompletableFuture&lt;T&gt;</code>, schedule retries on a <code>ScheduledExecutorService</code>. Avoids blocking a thread during sleep.</li>
+            <li><strong>Production?</strong> Use Resilience4j or Failsafe. Mention it.</li>
+            <li><strong>Total deadline?</strong> Add a <code>Duration totalBudget</code> to the policy and check elapsed time before each attempt.</li>
+          </ul>
+        </div>
+
+        <a href="#top" class="top-link">↑ Back to top</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- PROBLEM 06 -->
+  <!-- ============================================ -->
+  <section class="problem" id="p06">
+    <div class="problem-head">
+      <div class="num">№ 06</div>
+      <h2>CSV <em>dedup &amp; merge</em></h2>
+      <div class="meta">
+        <strong>~40 min</strong>
+        Pipeline
+        <span class="difficulty med">Medium</span>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Prompt</div>
+      <div class="content">
+        <p>You're given two CSV files of customer records with columns <code>id, email, name, updated_at</code>. Merge them into one deduplicated CSV. A duplicate is any record sharing the same <code>id</code> OR the same normalized email (lowercase, trimmed). When duplicates exist, keep the record with the latest <code>updated_at</code>. Drop rows with malformed timestamps or empty IDs.</p>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Clarify</div>
+      <div class="content">
+        <ul>
+          <li>What's the timestamp format? (ISO-8601 assumed.)</li>
+          <li>How are conflicts resolved when ID matches one record but email matches another?</li>
+          <li>Are emails case-insensitive across the board, or does the casing on output matter?</li>
+          <li>Can the files have different headers, or are they guaranteed identical?</li>
+        </ul>
+
+        <details class="hints">
+          <summary>Hints</summary>
+          <ol>
+            <li>Two-pass union-find when matching by both id and email gets messy. Simpler: keep two indexes, <code>byId</code> and <code>byEmail</code>, both pointing to the same record object.</li>
+            <li>For each incoming record, look up both indexes. Resolve "winner" by <code>updated_at</code>, then unify both indexes onto the winner.</li>
+            <li>Use OpenCSV or Apache Commons CSV for parsing — don't hand-roll, comma-in-quoted-field handling is a trap.</li>
+            <li>Stream both files; don't load everything if data is huge.</li>
+          </ol>
+        </details>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Solution</div>
+      <div class="content">
+<pre class="code"><code><span class="tk-k">import</span> java.io.*;
+<span class="tk-k">import</span> java.nio.file.*;
+<span class="tk-k">import</span> java.time.*;
+<span class="tk-k">import</span> java.time.format.*;
+<span class="tk-k">import</span> java.util.*;
+
+<span class="tk-k">public class</span> <span class="tk-t">CsvMerger</span> {
+
+    <span class="tk-k">public record</span> <span class="tk-t">Customer</span>(<span class="tk-t">String</span> id, <span class="tk-t">String</span> email,
+                            <span class="tk-t">String</span> name, <span class="tk-t">Instant</span> updatedAt) {
+        <span class="tk-t">String</span> <span class="tk-n">normalizedEmail</span>() { <span class="tk-k">return</span> email.<span class="tk-n">trim</span>().<span class="tk-n">toLowerCase</span>(<span class="tk-t">Locale</span>.<span class="tk-n">ROOT</span>); }
+    }
+
+    <span class="tk-k">public static void</span> <span class="tk-n">merge</span>(<span class="tk-t">Path</span> a, <span class="tk-t">Path</span> b, <span class="tk-t">Path</span> out) <span class="tk-k">throws</span> <span class="tk-t">IOException</span> {
+        <span class="tk-t">Map</span>&lt;<span class="tk-t">String</span>, <span class="tk-t">Customer</span>&gt; byId = <span class="tk-k">new</span> <span class="tk-t">HashMap</span>&lt;&gt;();
+        <span class="tk-t">Map</span>&lt;<span class="tk-t">String</span>, <span class="tk-t">Customer</span>&gt; byEmail = <span class="tk-k">new</span> <span class="tk-t">HashMap</span>&lt;&gt;();
+        <span class="tk-k">int</span> rejected = <span class="tk-n">0</span>;
+
+        <span class="tk-k">for</span> (<span class="tk-t">Path</span> p : <span class="tk-t">List</span>.<span class="tk-n">of</span>(a, b)) {
+            <span class="tk-k">try</span> (<span class="tk-t">BufferedReader</span> r = <span class="tk-t">Files</span>.<span class="tk-n">newBufferedReader</span>(p)) {
+                <span class="tk-t">String</span> header = r.<span class="tk-n">readLine</span>();          <span class="tk-c">// id,email,name,updated_at</span>
+                <span class="tk-t">String</span> line;
+                <span class="tk-k">while</span> ((line = r.<span class="tk-n">readLine</span>()) != <span class="tk-k">null</span>) {
+                    <span class="tk-t">Customer</span> c = parseRow(line);
+                    <span class="tk-k">if</span> (c == <span class="tk-k">null</span>) { rejected++; <span class="tk-k">continue</span>; }
+                    upsert(c, byId, byEmail);
+                }
+            }
+        }
+
+        <span class="tk-c">// byId and byEmail may share entries; collect unique records by identity</span>
+        <span class="tk-t">Set</span>&lt;<span class="tk-t">Customer</span>&gt; unique = <span class="tk-t">Collections</span>.<span class="tk-n">newSetFromMap</span>(<span class="tk-k">new</span> <span class="tk-t">IdentityHashMap</span>&lt;&gt;());
+        unique.<span class="tk-n">addAll</span>(byId.<span class="tk-n">values</span>());
+        unique.<span class="tk-n">addAll</span>(byEmail.<span class="tk-n">values</span>());
+
+        <span class="tk-k">try</span> (<span class="tk-t">BufferedWriter</span> w = <span class="tk-t">Files</span>.<span class="tk-n">newBufferedWriter</span>(out)) {
+            w.<span class="tk-n">write</span>(<span class="tk-s">"id,email,name,updated_at\n"</span>);
+            <span class="tk-k">for</span> (<span class="tk-t">Customer</span> c : unique) {
+                w.<span class="tk-n">write</span>(<span class="tk-t">String</span>.<span class="tk-n">format</span>(<span class="tk-s">"%s,%s,%s,%s%n"</span>,
+                    csvEscape(c.id()), csvEscape(c.email()),
+                    csvEscape(c.name()), c.updatedAt()));
+            }
+        }
+        <span class="tk-t">System</span>.<span class="tk-n">err</span>.<span class="tk-n">printf</span>(<span class="tk-s">"merged: %d rows, rejected: %d%n"</span>, unique.<span class="tk-n">size</span>(), rejected);
+    }
+
+    <span class="tk-k">private static void</span> <span class="tk-n">upsert</span>(<span class="tk-t">Customer</span> incoming,
+                               <span class="tk-t">Map</span>&lt;<span class="tk-t">String</span>, <span class="tk-t">Customer</span>&gt; byId,
+                               <span class="tk-t">Map</span>&lt;<span class="tk-t">String</span>, <span class="tk-t">Customer</span>&gt; byEmail) {
+        <span class="tk-t">Customer</span> matchById = byId.<span class="tk-n">get</span>(incoming.id());
+        <span class="tk-t">Customer</span> matchByEmail = byEmail.<span class="tk-n">get</span>(incoming.normalizedEmail());
+
+        <span class="tk-c">// Determine the winner among incoming + any matches</span>
+        <span class="tk-t">Customer</span> winner = incoming;
+        <span class="tk-k">if</span> (matchById != <span class="tk-k">null</span> &amp;&amp; matchById.updatedAt().isAfter(winner.updatedAt())) {
+            winner = matchById;
+        }
+        <span class="tk-k">if</span> (matchByEmail != <span class="tk-k">null</span> &amp;&amp; matchByEmail.updatedAt().isAfter(winner.updatedAt())) {
+            winner = matchByEmail;
+        }
+
+        <span class="tk-c">// Remove losers from both indexes, then install the winner</span>
+        <span class="tk-k">if</span> (matchById != <span class="tk-k">null</span> &amp;&amp; matchById != winner) {
+            byEmail.<span class="tk-n">remove</span>(matchById.normalizedEmail(), matchById);
+        }
+        <span class="tk-k">if</span> (matchByEmail != <span class="tk-k">null</span> &amp;&amp; matchByEmail != winner) {
+            byId.<span class="tk-n">remove</span>(matchByEmail.id(), matchByEmail);
+        }
+        byId.<span class="tk-n">put</span>(winner.id(), winner);
+        byEmail.<span class="tk-n">put</span>(winner.normalizedEmail(), winner);
+    }
+
+    <span class="tk-k">private static</span> <span class="tk-t">Customer</span> <span class="tk-n">parseRow</span>(<span class="tk-t">String</span> line) {
+        <span class="tk-c">// Production: use a real CSV parser. This is a simplification.</span>
+        <span class="tk-t">String</span>[] f = line.<span class="tk-n">split</span>(<span class="tk-s">","</span>, -<span class="tk-n">1</span>);
+        <span class="tk-k">if</span> (f.<span class="tk-n">length</span> != <span class="tk-n">4</span> || f[<span class="tk-n">0</span>].<span class="tk-n">isBlank</span>() || f[<span class="tk-n">1</span>].<span class="tk-n">isBlank</span>()) <span class="tk-k">return null</span>;
+        <span class="tk-k">try</span> {
+            <span class="tk-t">Instant</span> ts = <span class="tk-t">Instant</span>.<span class="tk-n">parse</span>(f[<span class="tk-n">3</span>].<span class="tk-n">trim</span>());
+            <span class="tk-k">return new</span> <span class="tk-t">Customer</span>(f[<span class="tk-n">0</span>].<span class="tk-n">trim</span>(), f[<span class="tk-n">1</span>].<span class="tk-n">trim</span>(), f[<span class="tk-n">2</span>].<span class="tk-n">trim</span>(), ts);
+        } <span class="tk-k">catch</span> (<span class="tk-t">DateTimeParseException</span> e) { <span class="tk-k">return null</span>; }
+    }
+
+    <span class="tk-k">private static</span> <span class="tk-t">String</span> <span class="tk-n">csvEscape</span>(<span class="tk-t">String</span> s) {
+        <span class="tk-k">return</span> (s.<span class="tk-n">contains</span>(<span class="tk-s">","</span>) || s.<span class="tk-n">contains</span>(<span class="tk-s">"\""</span>))
+            ? <span class="tk-s">"\""</span> + s.<span class="tk-n">replace</span>(<span class="tk-s">"\""</span>, <span class="tk-s">"\"\""</span>) + <span class="tk-s">"\""</span>
+            : s;
+    }
+}</code></pre>
+
+        <div class="discussion">
+          <div class="label-row">▸ Discussion / Follow-ups</div>
+          <ul>
+            <li><strong>Files too big to fit in memory?</strong> External merge sort: sort each file by id, sort each by email, merge in passes. Or push into a temp SQLite DB.</li>
+            <li><strong>Why <code>IdentityHashMap</code> for the unique set?</strong> Customer records may be <code>.equals()</code>-equal even when we want them treated as distinct objects during the dedup phase.</li>
+            <li><strong>Production CSV parsing?</strong> Always use a library. Quoted commas, embedded newlines, BOMs — hand-rolling fails subtly.</li>
+            <li><strong>Conflict policy?</strong> Latest-wins is one choice. Could also field-merge, or always prefer file A. Worth asking.</li>
+          </ul>
+        </div>
+
+        <a href="#top" class="top-link">↑ Back to top</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- PROBLEM 07 -->
+  <!-- ============================================ -->
+  <section class="problem" id="p07">
+    <div class="problem-head">
+      <div class="num">№ 07</div>
+      <h2>Streaming <em>JSON aggregator</em></h2>
+      <div class="meta">
+        <strong>~45 min</strong>
+        Pipeline
+        <span class="difficulty med">Medium</span>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Prompt</div>
+      <div class="content">
+        <p>You're given a multi-gigabyte JSON Lines file where each line is an order: <code>{"order_id":..., "user_id":..., "amount":..., "currency":..., "ts":...}</code>. Compute, per user: total order count, sum of amounts (in USD — assume a static FX map), and last order timestamp. Output as JSON. The file is too large to load. Optimize for memory, then speed.</p>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Clarify</div>
+      <div class="content">
+        <ul>
+          <li>How many distinct users — fits in memory?</li>
+          <li>What about malformed JSON lines? Skip or fail?</li>
+          <li>Are amounts in cents (integer) or decimals? (Float math on money is a footgun.)</li>
+          <li>Is the FX map provided, or do we need to fetch it?</li>
+        </ul>
+
+        <details class="hints">
+          <summary>Hints</summary>
+          <ol>
+            <li>Use a streaming parser (Jackson's <code>JsonParser</code>) — never <code>readTree</code> for line-by-line.</li>
+            <li>Use <code>BigDecimal</code> for money. Always.</li>
+            <li>If user count is too large, consider an external sort by user_id + sequential aggregation, or a disk-backed map.</li>
+            <li>For speed: parallelize. Split the file into chunks (handling line boundaries), aggregate each in a worker, merge per-user maps at the end.</li>
+          </ol>
+        </details>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Solution</div>
+      <div class="content">
+<pre class="code"><code><span class="tk-k">import</span> com.fasterxml.jackson.core.*;
+<span class="tk-k">import</span> com.fasterxml.jackson.databind.*;
+<span class="tk-k">import</span> java.io.*;
+<span class="tk-k">import</span> java.math.*;
+<span class="tk-k">import</span> java.nio.file.*;
+<span class="tk-k">import</span> java.time.*;
+<span class="tk-k">import</span> java.util.*;
+
+<span class="tk-k">public class</span> <span class="tk-t">OrderAggregator</span> {
+
+    <span class="tk-k">public static final class</span> <span class="tk-t">UserAgg</span> {
+        <span class="tk-k">long</span> count;
+        <span class="tk-t">BigDecimal</span> totalUsd = <span class="tk-t">BigDecimal</span>.<span class="tk-n">ZERO</span>;
+        <span class="tk-t">Instant</span> lastTs = <span class="tk-t">Instant</span>.<span class="tk-n">EPOCH</span>;
+
+        <span class="tk-k">void</span> <span class="tk-n">add</span>(<span class="tk-t">BigDecimal</span> amountUsd, <span class="tk-t">Instant</span> ts) {
+            count++;
+            totalUsd = totalUsd.<span class="tk-n">add</span>(amountUsd);
+            <span class="tk-k">if</span> (ts.<span class="tk-n">isAfter</span>(lastTs)) lastTs = ts;
+        }
+    }
+
+    <span class="tk-k">private final</span> <span class="tk-t">Map</span>&lt;<span class="tk-t">String</span>, <span class="tk-t">BigDecimal</span>&gt; fxToUsd;
+    <span class="tk-k">private final</span> <span class="tk-t">JsonFactory</span> jf = <span class="tk-k">new</span> <span class="tk-t">JsonFactory</span>();
+
+    <span class="tk-k">public</span> <span class="tk-t">OrderAggregator</span>(<span class="tk-t">Map</span>&lt;<span class="tk-t">String</span>, <span class="tk-t">BigDecimal</span>&gt; fxToUsd) {
+        <span class="tk-k">this</span>.fxToUsd = <span class="tk-t">Map</span>.<span class="tk-n">copyOf</span>(fxToUsd);
+    }
+
+    <span class="tk-k">public</span> <span class="tk-t">Map</span>&lt;<span class="tk-t">String</span>, <span class="tk-t">UserAgg</span>&gt; <span class="tk-n">aggregate</span>(<span class="tk-t">Path</span> file) <span class="tk-k">throws</span> <span class="tk-t">IOException</span> {
+        <span class="tk-t">Map</span>&lt;<span class="tk-t">String</span>, <span class="tk-t">UserAgg</span>&gt; result = <span class="tk-k">new</span> <span class="tk-t">HashMap</span>&lt;&gt;();
+        <span class="tk-k">long</span> bad = <span class="tk-n">0</span>;
+
+        <span class="tk-k">try</span> (<span class="tk-t">BufferedReader</span> r = <span class="tk-t">Files</span>.<span class="tk-n">newBufferedReader</span>(file)) {
+            <span class="tk-t">String</span> line;
+            <span class="tk-k">while</span> ((line = r.<span class="tk-n">readLine</span>()) != <span class="tk-k">null</span>) {
+                <span class="tk-k">if</span> (line.<span class="tk-n">isBlank</span>()) <span class="tk-k">continue</span>;
+                <span class="tk-k">try</span> {
+                    processLine(line, result);
+                } <span class="tk-k">catch</span> (<span class="tk-t">Exception</span> e) {
+                    bad++;  <span class="tk-c">// in real code, log with line number</span>
+                }
+            }
+        }
+        <span class="tk-k">if</span> (bad &gt; <span class="tk-n">0</span>) <span class="tk-t">System</span>.<span class="tk-n">err</span>.<span class="tk-n">printf</span>(<span class="tk-s">"skipped %d bad lines%n"</span>, bad);
+        <span class="tk-k">return</span> result;
+    }
+
+    <span class="tk-k">private void</span> <span class="tk-n">processLine</span>(<span class="tk-t">String</span> line, <span class="tk-t">Map</span>&lt;<span class="tk-t">String</span>, <span class="tk-t">UserAgg</span>&gt; out)
+            <span class="tk-k">throws</span> <span class="tk-t">IOException</span> {
+        <span class="tk-t">String</span> userId = <span class="tk-k">null</span>, currency = <span class="tk-k">null</span>;
+        <span class="tk-t">BigDecimal</span> amount = <span class="tk-k">null</span>;
+        <span class="tk-t">Instant</span> ts = <span class="tk-k">null</span>;
+
+        <span class="tk-k">try</span> (<span class="tk-t">JsonParser</span> p = jf.<span class="tk-n">createParser</span>(line)) {
+            <span class="tk-k">if</span> (p.<span class="tk-n">nextToken</span>() != <span class="tk-t">JsonToken</span>.<span class="tk-n">START_OBJECT</span>) <span class="tk-k">throw new</span> <span class="tk-t">IOException</span>(<span class="tk-s">"not obj"</span>);
+            <span class="tk-k">while</span> (p.<span class="tk-n">nextToken</span>() != <span class="tk-t">JsonToken</span>.<span class="tk-n">END_OBJECT</span>) {
+                <span class="tk-t">String</span> field = p.<span class="tk-n">currentName</span>();
+                p.<span class="tk-n">nextToken</span>();
+                <span class="tk-k">switch</span> (field) {
+                    <span class="tk-k">case</span> <span class="tk-s">"user_id"</span>  -&gt; userId = p.<span class="tk-n">getValueAsString</span>();
+                    <span class="tk-k">case</span> <span class="tk-s">"amount"</span>   -&gt; amount = p.<span class="tk-n">getDecimalValue</span>();
+                    <span class="tk-k">case</span> <span class="tk-s">"currency"</span> -&gt; currency = p.<span class="tk-n">getValueAsString</span>();
+                    <span class="tk-k">case</span> <span class="tk-s">"ts"</span>       -&gt; ts = <span class="tk-t">Instant</span>.<span class="tk-n">parse</span>(p.<span class="tk-n">getValueAsString</span>());
+                    <span class="tk-k">default</span>           -&gt; p.<span class="tk-n">skipChildren</span>();
+                }
+            }
+        }
+        <span class="tk-k">if</span> (userId == <span class="tk-k">null</span> || amount == <span class="tk-k">null</span> || currency == <span class="tk-k">null</span> || ts == <span class="tk-k">null</span>) {
+            <span class="tk-k">throw new</span> <span class="tk-t">IOException</span>(<span class="tk-s">"missing field"</span>);
+        }
+        <span class="tk-t">BigDecimal</span> rate = fxToUsd.<span class="tk-n">get</span>(currency);
+        <span class="tk-k">if</span> (rate == <span class="tk-k">null</span>) <span class="tk-k">throw new</span> <span class="tk-t">IOException</span>(<span class="tk-s">"unknown currency: "</span> + currency);
+        <span class="tk-t">BigDecimal</span> usd = amount.<span class="tk-n">multiply</span>(rate);
+        out.<span class="tk-n">computeIfAbsent</span>(userId, k -&gt; <span class="tk-k">new</span> <span class="tk-t">UserAgg</span>()).<span class="tk-n">add</span>(usd, ts);
+    }
+}</code></pre>
+
+        <div class="discussion">
+          <div class="label-row">▸ Discussion / Follow-ups</div>
+          <ul>
+            <li><strong>Why streaming parser, not <code>readTree</code>?</strong> <code>readTree</code> builds an in-memory DOM per line. Fine for tiny payloads, wasteful at scale. Streaming peaks at constant memory per line.</li>
+            <li><strong>Why <code>BigDecimal</code>?</strong> <code>0.1 + 0.2 != 0.3</code> with floats. Money math always uses <code>BigDecimal</code>; bonus points for setting an explicit <code>MathContext</code>.</li>
+            <li><strong>Parallelize?</strong> Memory-map the file, find newline boundaries near chunk edges, hand each chunk to a worker thread. Merge per-user maps at the end. <code>ForkJoinPool</code> works well.</li>
+            <li><strong>Too many users?</strong> External sort by user_id, then linear scan. Or a disk-backed map (RocksDB). Or push to a real OLAP system.</li>
+          </ul>
+        </div>
+
+        <a href="#top" class="top-link">↑ Back to top</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- PROBLEM 08 -->
+  <!-- ============================================ -->
+  <section class="problem" id="p08">
+    <div class="problem-head">
+      <div class="num">№ 08</div>
+      <h2>Tiny <em>HTTP router</em></h2>
+      <div class="meta">
+        <strong>~45 min</strong>
+        Service
+        <span class="difficulty med">Medium</span>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Prompt</div>
+      <div class="content">
+        <p>Implement a route-matching component for a small HTTP framework. API: <code>register(method, pattern, handler)</code> and <code>resolve(method, path)</code> which returns the matched handler plus extracted path parameters. Patterns can include parameters like <code>/users/:id/orders/:orderId</code> and a wildcard suffix like <code>/static/*</code>. Method-mismatched routes should return a "method not allowed" signal, not "not found".</p>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Clarify</div>
+      <div class="content">
+        <ul>
+          <li>Is order-of-registration the conflict resolution rule, or do more specific routes win?</li>
+          <li>Should the wildcard match zero or more path segments?</li>
+          <li>Are we expected to handle thousands of routes — does match speed matter?</li>
+          <li>Do path params allow slashes? (Default: no.)</li>
+        </ul>
+
+        <details class="hints">
+          <summary>Hints</summary>
+          <ol>
+            <li>Trie of path segments. Each node has children for literal segments, a single param child, and an optional wildcard child.</li>
+            <li>For "method not allowed": when path matches but method doesn't, you need to know the path matched. Track this distinctly from "no match."</li>
+            <li>Match priority: literal &gt; param &gt; wildcard.</li>
+            <li>Don't reach for regex unless asked. Trie is faster and clearer.</li>
+          </ol>
+        </details>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Solution</div>
+      <div class="content">
+<pre class="code"><code><span class="tk-k">import</span> java.util.*;
+<span class="tk-k">import</span> java.util.function.*;
+
+<span class="tk-k">public class</span> <span class="tk-t">Router</span>&lt;<span class="tk-t">H</span>&gt; {
+
+    <span class="tk-k">public sealed interface</span> <span class="tk-t">Resolution</span>&lt;<span class="tk-t">H</span>&gt; {}
+    <span class="tk-k">public record</span> <span class="tk-t">Match</span>&lt;<span class="tk-t">H</span>&gt;(<span class="tk-t">H</span> handler, <span class="tk-t">Map</span>&lt;<span class="tk-t">String</span>, <span class="tk-t">String</span>&gt; params)
+        <span class="tk-k">implements</span> <span class="tk-t">Resolution</span>&lt;<span class="tk-t">H</span>&gt; {}
+    <span class="tk-k">public record</span> <span class="tk-t">MethodNotAllowed</span>&lt;<span class="tk-t">H</span>&gt;(<span class="tk-t">Set</span>&lt;<span class="tk-t">String</span>&gt; allowed)
+        <span class="tk-k">implements</span> <span class="tk-t">Resolution</span>&lt;<span class="tk-t">H</span>&gt; {}
+    <span class="tk-k">public record</span> <span class="tk-t">NotFound</span>&lt;<span class="tk-t">H</span>&gt;() <span class="tk-k">implements</span> <span class="tk-t">Resolution</span>&lt;<span class="tk-t">H</span>&gt; {}
+
+    <span class="tk-k">private static final class</span> <span class="tk-t">Node</span>&lt;<span class="tk-t">H</span>&gt; {
+        <span class="tk-t">Map</span>&lt;<span class="tk-t">String</span>, <span class="tk-t">Node</span>&lt;<span class="tk-t">H</span>&gt;&gt; literal = <span class="tk-k">new</span> <span class="tk-t">HashMap</span>&lt;&gt;();
+        <span class="tk-t">String</span> paramName;
+        <span class="tk-t">Node</span>&lt;<span class="tk-t">H</span>&gt; paramChild;
+        <span class="tk-t">Map</span>&lt;<span class="tk-t">String</span>, <span class="tk-t">H</span>&gt; wildcardHandlers;   <span class="tk-c">// method -&gt; handler at /*</span>
+        <span class="tk-t">Map</span>&lt;<span class="tk-t">String</span>, <span class="tk-t">H</span>&gt; handlers = <span class="tk-k">new</span> <span class="tk-t">HashMap</span>&lt;&gt;();
+    }
+
+    <span class="tk-k">private final</span> <span class="tk-t">Node</span>&lt;<span class="tk-t">H</span>&gt; root = <span class="tk-k">new</span> <span class="tk-t">Node</span>&lt;&gt;();
+
+    <span class="tk-k">public void</span> <span class="tk-n">register</span>(<span class="tk-t">String</span> method, <span class="tk-t">String</span> pattern, <span class="tk-t">H</span> handler) {
+        <span class="tk-t">String</span>[] segs = split(pattern);
+        <span class="tk-t">Node</span>&lt;<span class="tk-t">H</span>&gt; node = root;
+        <span class="tk-k">for</span> (<span class="tk-k">int</span> i = <span class="tk-n">0</span>; i &lt; segs.<span class="tk-n">length</span>; i++) {
+            <span class="tk-t">String</span> s = segs[i];
+            <span class="tk-k">if</span> (s.<span class="tk-n">equals</span>(<span class="tk-s">"*"</span>)) {
+                <span class="tk-k">if</span> (i != segs.<span class="tk-n">length</span> - <span class="tk-n">1</span>)
+                    <span class="tk-k">throw new</span> <span class="tk-t">IllegalArgumentException</span>(<span class="tk-s">"* must be last"</span>);
+                <span class="tk-k">if</span> (node.wildcardHandlers == <span class="tk-k">null</span>) node.wildcardHandlers = <span class="tk-k">new</span> <span class="tk-t">HashMap</span>&lt;&gt;();
+                node.wildcardHandlers.<span class="tk-n">put</span>(method, handler);
+                <span class="tk-k">return</span>;
+            }
+            <span class="tk-k">if</span> (s.<span class="tk-n">startsWith</span>(<span class="tk-s">":"</span>)) {
+                <span class="tk-k">if</span> (node.paramChild == <span class="tk-k">null</span>) {
+                    node.paramChild = <span class="tk-k">new</span> <span class="tk-t">Node</span>&lt;&gt;();
+                    node.paramName = s.<span class="tk-n">substring</span>(<span class="tk-n">1</span>);
+                } <span class="tk-k">else if</span> (!node.paramName.<span class="tk-n">equals</span>(s.<span class="tk-n">substring</span>(<span class="tk-n">1</span>))) {
+                    <span class="tk-k">throw new</span> <span class="tk-t">IllegalArgumentException</span>(<span class="tk-s">"conflicting param name"</span>);
+                }
+                node = node.paramChild;
+            } <span class="tk-k">else</span> {
+                node = node.literal.<span class="tk-n">computeIfAbsent</span>(s, k -&gt; <span class="tk-k">new</span> <span class="tk-t">Node</span>&lt;&gt;());
+            }
+        }
+        node.handlers.<span class="tk-n">put</span>(method, handler);
+    }
+
+    <span class="tk-k">public</span> <span class="tk-t">Resolution</span>&lt;<span class="tk-t">H</span>&gt; <span class="tk-n">resolve</span>(<span class="tk-t">String</span> method, <span class="tk-t">String</span> path) {
+        <span class="tk-t">String</span>[] segs = split(path);
+        <span class="tk-t">Map</span>&lt;<span class="tk-t">String</span>, <span class="tk-t">String</span>&gt; params = <span class="tk-k">new</span> <span class="tk-t">HashMap</span>&lt;&gt;();
+        <span class="tk-t">Node</span>&lt;<span class="tk-t">H</span>&gt; matched = walk(root, segs, <span class="tk-n">0</span>, params);
+        <span class="tk-k">if</span> (matched == <span class="tk-k">null</span>) <span class="tk-k">return new</span> <span class="tk-t">NotFound</span>&lt;&gt;();
+        <span class="tk-t">H</span> handler = matched.handlers.<span class="tk-n">get</span>(method);
+        <span class="tk-k">if</span> (handler != <span class="tk-k">null</span>) <span class="tk-k">return new</span> <span class="tk-t">Match</span>&lt;&gt;(handler, params);
+        <span class="tk-k">if</span> (!matched.handlers.<span class="tk-n">isEmpty</span>())
+            <span class="tk-k">return new</span> <span class="tk-t">MethodNotAllowed</span>&lt;&gt;(<span class="tk-t">Set</span>.<span class="tk-n">copyOf</span>(matched.handlers.<span class="tk-n">keySet</span>()));
+        <span class="tk-k">return new</span> <span class="tk-t">NotFound</span>&lt;&gt;();
+    }
+
+    <span class="tk-k">private</span> <span class="tk-t">Node</span>&lt;<span class="tk-t">H</span>&gt; <span class="tk-n">walk</span>(<span class="tk-t">Node</span>&lt;<span class="tk-t">H</span>&gt; node, <span class="tk-t">String</span>[] segs, <span class="tk-k">int</span> i,
+                          <span class="tk-t">Map</span>&lt;<span class="tk-t">String</span>, <span class="tk-t">String</span>&gt; params) {
+        <span class="tk-k">if</span> (i == segs.<span class="tk-n">length</span>) <span class="tk-k">return</span> node;
+
+        <span class="tk-c">// Try literal first (most specific)</span>
+        <span class="tk-t">Node</span>&lt;<span class="tk-t">H</span>&gt; lit = node.literal.<span class="tk-n">get</span>(segs[i]);
+        <span class="tk-k">if</span> (lit != <span class="tk-k">null</span>) {
+            <span class="tk-t">Node</span>&lt;<span class="tk-t">H</span>&gt; r = walk(lit, segs, i + <span class="tk-n">1</span>, params);
+            <span class="tk-k">if</span> (r != <span class="tk-k">null</span>) <span class="tk-k">return</span> r;
+        }
+        <span class="tk-c">// Then param</span>
+        <span class="tk-k">if</span> (node.paramChild != <span class="tk-k">null</span>) {
+            params.<span class="tk-n">put</span>(node.paramName, segs[i]);
+            <span class="tk-t">Node</span>&lt;<span class="tk-t">H</span>&gt; r = walk(node.paramChild, segs, i + <span class="tk-n">1</span>, params);
+            <span class="tk-k">if</span> (r != <span class="tk-k">null</span>) <span class="tk-k">return</span> r;
+            params.<span class="tk-n">remove</span>(node.paramName);
+        }
+        <span class="tk-c">// Finally, wildcard at this node consumes everything remaining</span>
+        <span class="tk-k">if</span> (node.wildcardHandlers != <span class="tk-k">null</span>) {
+            <span class="tk-t">Node</span>&lt;<span class="tk-t">H</span>&gt; pseudo = <span class="tk-k">new</span> <span class="tk-t">Node</span>&lt;&gt;();
+            pseudo.handlers.<span class="tk-n">putAll</span>(node.wildcardHandlers);
+            <span class="tk-k">return</span> pseudo;
+        }
+        <span class="tk-k">return null</span>;
+    }
+
+    <span class="tk-k">private static</span> <span class="tk-t">String</span>[] <span class="tk-n">split</span>(<span class="tk-t">String</span> path) {
+        <span class="tk-t">String</span> p = path.<span class="tk-n">startsWith</span>(<span class="tk-s">"/"</span>) ? path.<span class="tk-n">substring</span>(<span class="tk-n">1</span>) : path;
+        <span class="tk-k">if</span> (p.<span class="tk-n">isEmpty</span>()) <span class="tk-k">return new</span> <span class="tk-t">String</span>[<span class="tk-n">0</span>];
+        <span class="tk-k">return</span> p.<span class="tk-n">split</span>(<span class="tk-s">"/"</span>);
+    }
+}</code></pre>
+
+        <div class="discussion">
+          <div class="label-row">▸ Discussion / Follow-ups</div>
+          <ul>
+            <li><strong>Why a sealed interface for the result?</strong> Three distinct outcomes (match, method-not-allowed, not-found). Sealed types let the caller exhaustively switch — way cleaner than nullable returns or status enums.</li>
+            <li><strong>Concurrency?</strong> If routes are registered once at startup and read forever, the trie is effectively immutable — safe without locks. If routes change at runtime, copy-on-write the trie or use a versioned reference.</li>
+            <li><strong>Wildcard binding to a name?</strong> Real frameworks (Express, gin) bind <code>/static/*path</code> so the matched suffix is available. Easy extension.</li>
+            <li><strong>Why not regex?</strong> Slower, harder to reason about ambiguity and conflicts. Tries make priority obvious.</li>
+          </ul>
+        </div>
+
+        <a href="#top" class="top-link">↑ Back to top</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- PROBLEM 09 -->
+  <!-- ============================================ -->
+  <section class="problem" id="p09">
+    <div class="problem-head">
+      <div class="num">№ 09</div>
+      <h2>Request <em>validation pipeline</em></h2>
+      <div class="meta">
+        <strong>~35 min</strong>
+        Service
+        <span class="difficulty">Warm-up</span>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Prompt</div>
+      <div class="content">
+        <p>Build a composable validation API. Given an inbound request payload (a <code>Map&lt;String, Object&gt;</code>), validate it against a set of rules — required fields, type checks, regex, range, custom predicates. Return all violations, not just the first. The API should let callers compose validators ergonomically.</p>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Clarify</div>
+      <div class="content">
+        <ul>
+          <li>Field paths nested? (<code>address.zip</code>)</li>
+          <li>Should "required" prevent further checks on that field, or proceed?</li>
+          <li>I18n on error messages?</li>
+          <li>Is short-circuiting on first error ever desired?</li>
+        </ul>
+
+        <details class="hints">
+          <summary>Hints</summary>
+          <ol>
+            <li>Each <code>Validator</code> takes the input and returns a <code>List&lt;Violation&gt;</code>. Composition = list-concatenation.</li>
+            <li>A field-scoped DSL (<code>field("email").required().matches(EMAIL_REGEX)</code>) reads beautifully and tests cleanly.</li>
+            <li>Don't use exceptions for control flow — they're slow and clunky for "we found 12 issues."</li>
+          </ol>
+        </details>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Solution</div>
+      <div class="content">
+<pre class="code"><code><span class="tk-k">import</span> java.util.*;
+<span class="tk-k">import</span> java.util.function.*;
+<span class="tk-k">import</span> java.util.regex.*;
+
+<span class="tk-k">public final class</span> <span class="tk-t">Validation</span> {
+
+    <span class="tk-k">public record</span> <span class="tk-t">Violation</span>(<span class="tk-t">String</span> field, <span class="tk-t">String</span> code, <span class="tk-t">String</span> message) {}
+
+    <span class="tk-k">public interface</span> <span class="tk-t">Validator</span> <span class="tk-k">extends</span> <span class="tk-t">Function</span>&lt;<span class="tk-t">Map</span>&lt;<span class="tk-t">String</span>, <span class="tk-t">Object</span>&gt;, <span class="tk-t">List</span>&lt;<span class="tk-t">Violation</span>&gt;&gt; {
+
+        <span class="tk-k">default</span> <span class="tk-t">Validator</span> <span class="tk-n">and</span>(<span class="tk-t">Validator</span> next) {
+            <span class="tk-k">return</span> req -&gt; {
+                <span class="tk-t">List</span>&lt;<span class="tk-t">Violation</span>&gt; merged = <span class="tk-k">new</span> <span class="tk-t">ArrayList</span>&lt;&gt;(<span class="tk-k">this</span>.<span class="tk-n">apply</span>(req));
+                merged.<span class="tk-n">addAll</span>(next.<span class="tk-n">apply</span>(req));
+                <span class="tk-k">return</span> merged;
+            };
+        }
+    }
+
+    <span class="tk-k">public static</span> <span class="tk-t">FieldRule</span> <span class="tk-n">field</span>(<span class="tk-t">String</span> name) { <span class="tk-k">return new</span> <span class="tk-t">FieldRule</span>(name); }
+
+    <span class="tk-k">public static final class</span> <span class="tk-t">FieldRule</span> <span class="tk-k">implements</span> <span class="tk-t">Validator</span> {
+        <span class="tk-k">private final</span> <span class="tk-t">String</span> name;
+        <span class="tk-k">private final</span> <span class="tk-t">List</span>&lt;<span class="tk-t">Function</span>&lt;<span class="tk-t">Object</span>, <span class="tk-t">Optional</span>&lt;<span class="tk-t">Violation</span>&gt;&gt;&gt; checks = <span class="tk-k">new</span> <span class="tk-t">ArrayList</span>&lt;&gt;();
+        <span class="tk-k">private boolean</span> requiredCheck = <span class="tk-k">false</span>;
+
+        <span class="tk-t">FieldRule</span>(<span class="tk-t">String</span> name) { <span class="tk-k">this</span>.name = name; }
+
+        <span class="tk-k">public</span> <span class="tk-t">FieldRule</span> <span class="tk-n">required</span>() {
+            requiredCheck = <span class="tk-k">true</span>;
+            <span class="tk-k">return</span> add(v -&gt; v == <span class="tk-k">null</span>
+                ? <span class="tk-t">Optional</span>.<span class="tk-n">of</span>(<span class="tk-k">new</span> <span class="tk-t">Violation</span>(name, <span class="tk-s">"REQUIRED"</span>, name + <span class="tk-s">" is required"</span>))
+                : <span class="tk-t">Optional</span>.<span class="tk-n">empty</span>());
+        }
+
+        <span class="tk-k">public</span> <span class="tk-t">FieldRule</span> <span class="tk-n">type</span>(<span class="tk-t">Class</span>&lt;?&gt; t) {
+            <span class="tk-k">return</span> add(v -&gt; (v != <span class="tk-k">null</span> &amp;&amp; !t.<span class="tk-n">isInstance</span>(v))
+                ? <span class="tk-t">Optional</span>.<span class="tk-n">of</span>(<span class="tk-k">new</span> <span class="tk-t">Violation</span>(name, <span class="tk-s">"TYPE"</span>,
+                    name + <span class="tk-s">" must be "</span> + t.<span class="tk-n">getSimpleName</span>()))
+                : <span class="tk-t">Optional</span>.<span class="tk-n">empty</span>());
+        }
+
+        <span class="tk-k">public</span> <span class="tk-t">FieldRule</span> <span class="tk-n">matches</span>(<span class="tk-t">Pattern</span> regex) {
+            <span class="tk-k">return</span> add(v -&gt; (v <span class="tk-k">instanceof</span> <span class="tk-t">String</span> s &amp;&amp; !regex.<span class="tk-n">matcher</span>(s).<span class="tk-n">matches</span>())
+                ? <span class="tk-t">Optional</span>.<span class="tk-n">of</span>(<span class="tk-k">new</span> <span class="tk-t">Violation</span>(name, <span class="tk-s">"FORMAT"</span>, name + <span class="tk-s">" format invalid"</span>))
+                : <span class="tk-t">Optional</span>.<span class="tk-n">empty</span>());
+        }
+
+        <span class="tk-k">public</span> <span class="tk-t">FieldRule</span> <span class="tk-n">range</span>(<span class="tk-k">long</span> min, <span class="tk-k">long</span> max) {
+            <span class="tk-k">return</span> add(v -&gt; {
+                <span class="tk-k">if</span> (!(v <span class="tk-k">instanceof</span> <span class="tk-t">Number</span> n)) <span class="tk-k">return</span> <span class="tk-t">Optional</span>.<span class="tk-n">empty</span>();
+                <span class="tk-k">long</span> x = n.<span class="tk-n">longValue</span>();
+                <span class="tk-k">return</span> (x &lt; min || x &gt; max)
+                    ? <span class="tk-t">Optional</span>.<span class="tk-n">of</span>(<span class="tk-k">new</span> <span class="tk-t">Violation</span>(name, <span class="tk-s">"RANGE"</span>,
+                        name + <span class="tk-s">" must be in ["</span> + min + <span class="tk-s">","</span> + max + <span class="tk-s">"]"</span>))
+                    : <span class="tk-t">Optional</span>.<span class="tk-n">empty</span>();
+            });
+        }
+
+        <span class="tk-k">public</span> <span class="tk-t">FieldRule</span> <span class="tk-n">satisfies</span>(<span class="tk-t">Predicate</span>&lt;<span class="tk-t">Object</span>&gt; pred, <span class="tk-t">String</span> code, <span class="tk-t">String</span> msg) {
+            <span class="tk-k">return</span> add(v -&gt; (v != <span class="tk-k">null</span> &amp;&amp; !pred.<span class="tk-n">test</span>(v))
+                ? <span class="tk-t">Optional</span>.<span class="tk-n">of</span>(<span class="tk-k">new</span> <span class="tk-t">Violation</span>(name, code, msg))
+                : <span class="tk-t">Optional</span>.<span class="tk-n">empty</span>());
+        }
+
+        <span class="tk-k">private</span> <span class="tk-t">FieldRule</span> <span class="tk-n">add</span>(<span class="tk-t">Function</span>&lt;<span class="tk-t">Object</span>, <span class="tk-t">Optional</span>&lt;<span class="tk-t">Violation</span>&gt;&gt; c) {
+            checks.<span class="tk-n">add</span>(c); <span class="tk-k">return this</span>;
+        }
+
+        <span class="tk-k">public</span> <span class="tk-t">List</span>&lt;<span class="tk-t">Violation</span>&gt; <span class="tk-n">apply</span>(<span class="tk-t">Map</span>&lt;<span class="tk-t">String</span>, <span class="tk-t">Object</span>&gt; req) {
+            <span class="tk-t">Object</span> value = req.<span class="tk-n">get</span>(name);
+            <span class="tk-t">List</span>&lt;<span class="tk-t">Violation</span>&gt; out = <span class="tk-k">new</span> <span class="tk-t">ArrayList</span>&lt;&gt;();
+            <span class="tk-c">// If field is missing AND not required, skip remaining checks</span>
+            <span class="tk-k">if</span> (value == <span class="tk-k">null</span> &amp;&amp; !requiredCheck) <span class="tk-k">return</span> out;
+            <span class="tk-k">for</span> (<span class="tk-k">var</span> check : checks) {
+                check.<span class="tk-n">apply</span>(value).<span class="tk-n">ifPresent</span>(out::<span class="tk-n">add</span>);
+            }
+            <span class="tk-k">return</span> out;
+        }
+    }
+}
+
+<span class="tk-c">// Usage:</span>
+<span class="tk-c">// Validator v = field("email").required().type(String.class).matches(EMAIL)</span>
+<span class="tk-c">//     .and(field("age").type(Number.class).range(0, 150));</span>
+<span class="tk-c">// List&lt;Violation&gt; problems = v.apply(payload);</span></code></pre>
+
+        <div class="discussion">
+          <div class="label-row">▸ Discussion / Follow-ups</div>
+          <ul>
+            <li><strong>Why functional, not annotations?</strong> Bean Validation (JSR-380) is fine but inflexible — hard to compose runtime rules, hard to test in isolation. A function-based DSL composes via <code>and</code> and works for any source of rules.</li>
+            <li><strong>Nested fields?</strong> Either flatten the path (<code>"address.zip"</code> with map-walking) or recurse with sub-validators on extracted sub-objects.</li>
+            <li><strong>Performance?</strong> Validators are immutable after construction; one builder per endpoint, reused per request. Reflection-free, allocation-light.</li>
+            <li><strong>Why collect all errors?</strong> APIs that fail-fast force users into ping-pong with the server. Collecting all is a UX win.</li>
+          </ul>
+        </div>
+
+        <a href="#top" class="top-link">↑ Back to top</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- PROBLEM 10 -->
+  <!-- ============================================ -->
+  <section class="problem" id="p10">
+    <div class="problem-head">
+      <div class="num">№ 10</div>
+      <h2>Config-driven <em>rule engine</em></h2>
+      <div class="meta">
+        <strong>~55 min</strong>
+        Config
+        <span class="difficulty hard">Hard</span>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Prompt</div>
+      <div class="content">
+        <p>You're building a fraud-screening pipeline. Rules come from a JSON config like:</p>
+        <pre class="code"><code>{
+  "rules": [
+    {"type": "amount_gt", "field": "amount", "value": 10000, "action": "FLAG"},
+    {"type": "country_in", "field": "country", "value": ["RU", "KP"], "action": "BLOCK"},
+    {"type": "all", "rules": [
+        {"type": "amount_gt", "field": "amount", "value": 500},
+        {"type": "new_account", "days": 1}
+    ], "action": "REVIEW"}
+  ]
+}</code></pre>
+        <p>Evaluate a transaction against the config and return all triggered actions. The interviewer will then ask you to add a new rule type — make sure that's a one-class change, not a rewrite.</p>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Clarify</div>
+      <div class="content">
+        <ul>
+          <li>Should evaluation short-circuit on a <code>BLOCK</code>?</li>
+          <li>Are nested composite rules (<code>any</code>, <code>all</code>) needed? (Yes, in this case.)</li>
+          <li>Is config validation/loading separate from evaluation?</li>
+          <li>What's the priority when multiple rules fire on conflicting actions?</li>
+        </ul>
+
+        <details class="hints">
+          <summary>Hints</summary>
+          <ol>
+            <li>Strategy pattern, registry-style. <code>Map&lt;String, RuleFactory&gt;</code> lookup keyed on the <code>type</code> field.</li>
+            <li>Each rule implements <code>boolean evaluate(Transaction)</code>. Composite rules <code>all</code>/<code>any</code> recurse.</li>
+            <li>Adding a new rule type = one class + one registry entry. That's the test the interviewer will run.</li>
+            <li>Don't use <code>switch</code> on rule type strings — that's the failure mode they're checking for.</li>
+          </ol>
+        </details>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Solution</div>
+      <div class="content">
+<pre class="code"><code><span class="tk-k">import</span> com.fasterxml.jackson.databind.*;
+<span class="tk-k">import</span> com.fasterxml.jackson.databind.node.*;
+<span class="tk-k">import</span> java.math.*;
+<span class="tk-k">import</span> java.time.*;
+<span class="tk-k">import</span> java.util.*;
+<span class="tk-k">import</span> java.util.function.*;
+
+<span class="tk-k">public class</span> <span class="tk-t">RuleEngine</span> {
+
+    <span class="tk-k">public record</span> <span class="tk-t">Transaction</span>(<span class="tk-t">String</span> userId, <span class="tk-t">BigDecimal</span> amount,
+                              <span class="tk-t">String</span> country, <span class="tk-t">Instant</span> accountCreated,
+                              <span class="tk-t">Instant</span> ts) {}
+
+    <span class="tk-k">public interface</span> <span class="tk-t">Rule</span> {
+        <span class="tk-k">boolean</span> <span class="tk-n">evaluate</span>(<span class="tk-t">Transaction</span> tx);
+        <span class="tk-t">String</span> <span class="tk-n">action</span>();   <span class="tk-c">// FLAG / BLOCK / REVIEW / null for inner rules</span>
+    }
+
+    <span class="tk-k">public interface</span> <span class="tk-t">RuleFactory</span> {
+        <span class="tk-t">Rule</span> <span class="tk-n">build</span>(<span class="tk-t">JsonNode</span> spec, <span class="tk-t">RuleRegistry</span> registry);
+    }
+
+    <span class="tk-k">public static final class</span> <span class="tk-t">RuleRegistry</span> {
+        <span class="tk-k">private final</span> <span class="tk-t">Map</span>&lt;<span class="tk-t">String</span>, <span class="tk-t">RuleFactory</span>&gt; factories = <span class="tk-k">new</span> <span class="tk-t">HashMap</span>&lt;&gt;();
+
+        <span class="tk-k">public</span> <span class="tk-t">RuleRegistry</span> <span class="tk-n">register</span>(<span class="tk-t">String</span> type, <span class="tk-t">RuleFactory</span> factory) {
+            factories.<span class="tk-n">put</span>(type, factory); <span class="tk-k">return this</span>;
+        }
+
+        <span class="tk-k">public</span> <span class="tk-t">Rule</span> <span class="tk-n">build</span>(<span class="tk-t">JsonNode</span> spec) {
+            <span class="tk-t">String</span> type = spec.<span class="tk-n">get</span>(<span class="tk-s">"type"</span>).<span class="tk-n">asText</span>();
+            <span class="tk-t">RuleFactory</span> f = factories.<span class="tk-n">get</span>(type);
+            <span class="tk-k">if</span> (f == <span class="tk-k">null</span>) <span class="tk-k">throw new</span> <span class="tk-t">IllegalArgumentException</span>(<span class="tk-s">"unknown rule type: "</span> + type);
+            <span class="tk-k">return</span> f.<span class="tk-n">build</span>(spec, <span class="tk-k">this</span>);
+        }
+    }
+
+    <span class="tk-c">// ---- Built-in rules ---------------------------------------------------</span>
+
+    <span class="tk-k">public static</span> <span class="tk-t">RuleRegistry</span> <span class="tk-n">defaultRegistry</span>() {
+        <span class="tk-k">return new</span> <span class="tk-t">RuleRegistry</span>()
+            .<span class="tk-n">register</span>(<span class="tk-s">"amount_gt"</span>, (n, r) -&gt; <span class="tk-k">new</span> <span class="tk-t">PredicateRule</span>(
+                tx -&gt; tx.amount().<span class="tk-n">compareTo</span>(<span class="tk-k">new</span> <span class="tk-t">BigDecimal</span>(n.<span class="tk-n">get</span>(<span class="tk-s">"value"</span>).<span class="tk-n">asText</span>())) &gt; <span class="tk-n">0</span>,
+                actionOrNull(n)))
+            .<span class="tk-n">register</span>(<span class="tk-s">"country_in"</span>, (n, r) -&gt; {
+                <span class="tk-t">Set</span>&lt;<span class="tk-t">String</span>&gt; set = <span class="tk-k">new</span> <span class="tk-t">HashSet</span>&lt;&gt;();
+                n.<span class="tk-n">get</span>(<span class="tk-s">"value"</span>).<span class="tk-n">forEach</span>(v -&gt; set.<span class="tk-n">add</span>(v.<span class="tk-n">asText</span>()));
+                <span class="tk-k">return new</span> <span class="tk-t">PredicateRule</span>(tx -&gt; set.<span class="tk-n">contains</span>(tx.country()), actionOrNull(n));
+            })
+            .<span class="tk-n">register</span>(<span class="tk-s">"new_account"</span>, (n, r) -&gt; {
+                <span class="tk-k">long</span> days = n.<span class="tk-n">get</span>(<span class="tk-s">"days"</span>).<span class="tk-n">asLong</span>();
+                <span class="tk-k">return new</span> <span class="tk-t">PredicateRule</span>(
+                    tx -&gt; <span class="tk-t">Duration</span>.<span class="tk-n">between</span>(tx.accountCreated(), tx.ts()).<span class="tk-n">toDays</span>() &lt;= days,
+                    actionOrNull(n));
+            })
+            .<span class="tk-n">register</span>(<span class="tk-s">"all"</span>, (n, r) -&gt; <span class="tk-k">new</span> <span class="tk-t">CompositeRule</span>(buildList(n, r), <span class="tk-k">true</span>, actionOrNull(n)))
+            .<span class="tk-n">register</span>(<span class="tk-s">"any"</span>, (n, r) -&gt; <span class="tk-k">new</span> <span class="tk-t">CompositeRule</span>(buildList(n, r), <span class="tk-k">false</span>, actionOrNull(n)));
+    }
+
+    <span class="tk-k">private static</span> <span class="tk-t">List</span>&lt;<span class="tk-t">Rule</span>&gt; <span class="tk-n">buildList</span>(<span class="tk-t">JsonNode</span> n, <span class="tk-t">RuleRegistry</span> r) {
+        <span class="tk-t">List</span>&lt;<span class="tk-t">Rule</span>&gt; out = <span class="tk-k">new</span> <span class="tk-t">ArrayList</span>&lt;&gt;();
+        n.<span class="tk-n">get</span>(<span class="tk-s">"rules"</span>).<span class="tk-n">forEach</span>(child -&gt; out.<span class="tk-n">add</span>(r.<span class="tk-n">build</span>(child)));
+        <span class="tk-k">return</span> out;
+    }
+
+    <span class="tk-k">private static</span> <span class="tk-t">String</span> <span class="tk-n">actionOrNull</span>(<span class="tk-t">JsonNode</span> n) {
+        <span class="tk-k">return</span> n.<span class="tk-n">has</span>(<span class="tk-s">"action"</span>) ? n.<span class="tk-n">get</span>(<span class="tk-s">"action"</span>).<span class="tk-n">asText</span>() : <span class="tk-k">null</span>;
+    }
+
+    <span class="tk-k">private record</span> <span class="tk-t">PredicateRule</span>(<span class="tk-t">Predicate</span>&lt;<span class="tk-t">Transaction</span>&gt; pred, <span class="tk-t">String</span> action)
+        <span class="tk-k">implements</span> <span class="tk-t">Rule</span> {
+        <span class="tk-k">public boolean</span> <span class="tk-n">evaluate</span>(<span class="tk-t">Transaction</span> tx) { <span class="tk-k">return</span> pred.<span class="tk-n">test</span>(tx); }
+    }
+
+    <span class="tk-k">private record</span> <span class="tk-t">CompositeRule</span>(<span class="tk-t">List</span>&lt;<span class="tk-t">Rule</span>&gt; children, <span class="tk-k">boolean</span> all, <span class="tk-t">String</span> action)
+        <span class="tk-k">implements</span> <span class="tk-t">Rule</span> {
+        <span class="tk-k">public boolean</span> <span class="tk-n">evaluate</span>(<span class="tk-t">Transaction</span> tx) {
+            <span class="tk-k">return</span> all
+                ? children.<span class="tk-n">stream</span>().<span class="tk-n">allMatch</span>(c -&gt; c.<span class="tk-n">evaluate</span>(tx))
+                : children.<span class="tk-n">stream</span>().<span class="tk-n">anyMatch</span>(c -&gt; c.<span class="tk-n">evaluate</span>(tx));
+        }
+    }
+
+    <span class="tk-c">// ---- Engine -----------------------------------------------------------</span>
+
+    <span class="tk-k">private final</span> <span class="tk-t">List</span>&lt;<span class="tk-t">Rule</span>&gt; rules;
+
+    <span class="tk-k">public</span> <span class="tk-t">RuleEngine</span>(<span class="tk-t">JsonNode</span> config, <span class="tk-t">RuleRegistry</span> registry) {
+        <span class="tk-t">List</span>&lt;<span class="tk-t">Rule</span>&gt; built = <span class="tk-k">new</span> <span class="tk-t">ArrayList</span>&lt;&gt;();
+        config.<span class="tk-n">get</span>(<span class="tk-s">"rules"</span>).<span class="tk-n">forEach</span>(r -&gt; built.<span class="tk-n">add</span>(registry.<span class="tk-n">build</span>(r)));
+        <span class="tk-k">this</span>.rules = <span class="tk-t">List</span>.<span class="tk-n">copyOf</span>(built);
+    }
+
+    <span class="tk-k">public</span> <span class="tk-t">List</span>&lt;<span class="tk-t">String</span>&gt; <span class="tk-n">evaluate</span>(<span class="tk-t">Transaction</span> tx) {
+        <span class="tk-t">List</span>&lt;<span class="tk-t">String</span>&gt; actions = <span class="tk-k">new</span> <span class="tk-t">ArrayList</span>&lt;&gt;();
+        <span class="tk-k">for</span> (<span class="tk-t">Rule</span> r : rules) {
+            <span class="tk-k">if</span> (r.<span class="tk-n">evaluate</span>(tx) &amp;&amp; r.<span class="tk-n">action</span>() != <span class="tk-k">null</span>) actions.<span class="tk-n">add</span>(r.<span class="tk-n">action</span>());
+        }
+        <span class="tk-k">return</span> actions;
+    }
+}
+
+<span class="tk-c">// Adding a new rule type: write a factory, register it. No engine changes.</span>
+<span class="tk-c">// registry.register("velocity", (n, r) -&gt; new VelocityRule(...));</span></code></pre>
+
+        <div class="discussion">
+          <div class="label-row">▸ Discussion / Follow-ups</div>
+          <ul>
+            <li><strong>Why a registry, not a switch?</strong> The switch couples the engine to every rule type. The registry inverts the dependency — new rules add themselves at startup. Open/closed in practice.</li>
+            <li><strong>Schema validation?</strong> Validate config at load time, not eval time. Fail loud and fail early.</li>
+            <li><strong>Reload at runtime?</strong> Build a new <code>RuleEngine</code> from new config and atomically swap the reference (volatile field or <code>AtomicReference</code>). Don't mutate.</li>
+            <li><strong>Performance?</strong> Compile to predicate trees once at construction; the hot path is just <code>evaluate</code>. For very high QPS, consider expression-tree compilers like Janino.</li>
+            <li><strong>Why expose action only at the top level?</strong> Inner rules are sub-conditions; only the outer rule decides what action fires. Action-on-inner is silent (returns null).</li>
+          </ul>
+        </div>
+
+        <a href="#top" class="top-link">↑ Back to top</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- PROBLEM 11 -->
+  <!-- ============================================ -->
+  <section class="problem" id="p11">
+    <div class="problem-head">
+      <div class="num">№ 11</div>
+      <h2>Circuit <em>breaker</em></h2>
+      <div class="meta">
+        <strong>~50 min</strong>
+        Primitive
+        <span class="difficulty hard">Hard</span>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Prompt</div>
+      <div class="content">
+        <p>Implement a <em class="term">circuit breaker</em> with three states: <code>CLOSED</code> (calls flow normally), <code>OPEN</code> (calls fail-fast), and <code>HALF_OPEN</code> (a few probe calls allowed). Trips to <code>OPEN</code> when failure rate exceeds a threshold over the last <code>N</code> calls. After a cool-down, transitions to <code>HALF_OPEN</code>; if probes succeed, returns to <code>CLOSED</code>. Thread-safe.</p>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Clarify</div>
+      <div class="content">
+        <ul>
+          <li>Failure rate over a count window or a time window?</li>
+          <li>How many probes in <code>HALF_OPEN</code>? All-or-nothing, or a threshold?</li>
+          <li>What's a "failure"? Any exception, or only certain types (e.g. <code>IOException</code>)?</li>
+          <li>Should slow calls count as failures? (Resilience4j does.)</li>
+        </ul>
+
+        <details class="hints">
+          <summary>Hints</summary>
+          <ol>
+            <li>Use atomic state transitions. The state is the source of truth; stats inform transitions but live separately.</li>
+            <li>The OPEN→HALF_OPEN transition is time-based — check on each call rather than scheduling.</li>
+            <li>In HALF_OPEN, atomically allow only N probes through; the rest fast-fail.</li>
+            <li>Mention that real implementations (Resilience4j) batch event recording for performance.</li>
+          </ol>
+        </details>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Solution</div>
+      <div class="content">
+<pre class="code"><code><span class="tk-k">import</span> java.time.*;
+<span class="tk-k">import</span> java.util.concurrent.*;
+<span class="tk-k">import</span> java.util.concurrent.atomic.*;
+
+<span class="tk-k">public class</span> <span class="tk-t">CircuitBreaker</span> {
+
+    <span class="tk-k">public enum</span> <span class="tk-t">State</span> { <span class="tk-n">CLOSED</span>, <span class="tk-n">OPEN</span>, <span class="tk-n">HALF_OPEN</span> }
+
+    <span class="tk-k">public static class</span> <span class="tk-t">CircuitOpenException</span> <span class="tk-k">extends</span> <span class="tk-t">RuntimeException</span> {}
+
+    <span class="tk-k">public record</span> <span class="tk-t">Config</span>(<span class="tk-k">int</span> windowSize, <span class="tk-k">double</span> failureThreshold,
+                          <span class="tk-t">Duration</span> openDuration, <span class="tk-k">int</span> halfOpenProbes) {}
+
+    <span class="tk-k">private final</span> <span class="tk-t">Config</span> cfg;
+    <span class="tk-k">private final</span> <span class="tk-t">AtomicReference</span>&lt;<span class="tk-t">State</span>&gt; state = <span class="tk-k">new</span> <span class="tk-t">AtomicReference</span>&lt;&gt;(<span class="tk-t">State</span>.<span class="tk-n">CLOSED</span>);
+    <span class="tk-k">private final</span> <span class="tk-t">AtomicLong</span> openedAt = <span class="tk-k">new</span> <span class="tk-t">AtomicLong</span>();
+    <span class="tk-k">private final</span> <span class="tk-t">AtomicInteger</span> probesInFlight = <span class="tk-k">new</span> <span class="tk-t">AtomicInteger</span>();
+    <span class="tk-k">private final</span> <span class="tk-t">AtomicInteger</span> probeSuccesses = <span class="tk-k">new</span> <span class="tk-t">AtomicInteger</span>();
+    <span class="tk-k">private final</span> <span class="tk-t">RingBuffer</span> outcomes;
+
+    <span class="tk-k">public</span> <span class="tk-t">CircuitBreaker</span>(<span class="tk-t">Config</span> cfg) {
+        <span class="tk-k">this</span>.cfg = cfg;
+        <span class="tk-k">this</span>.outcomes = <span class="tk-k">new</span> <span class="tk-t">RingBuffer</span>(cfg.windowSize());
+    }
+
+    <span class="tk-k">public</span> &lt;<span class="tk-t">T</span>&gt; <span class="tk-t">T</span> <span class="tk-n">execute</span>(<span class="tk-t">Callable</span>&lt;<span class="tk-t">T</span>&gt; op) <span class="tk-k">throws</span> <span class="tk-t">Exception</span> {
+        <span class="tk-t">State</span> s = currentState();
+        <span class="tk-k">if</span> (s == <span class="tk-t">State</span>.<span class="tk-n">OPEN</span>) <span class="tk-k">throw new</span> <span class="tk-t">CircuitOpenException</span>();
+        <span class="tk-k">if</span> (s == <span class="tk-t">State</span>.<span class="tk-n">HALF_OPEN</span>) {
+            <span class="tk-k">if</span> (probesInFlight.<span class="tk-n">incrementAndGet</span>() &gt; cfg.halfOpenProbes()) {
+                probesInFlight.<span class="tk-n">decrementAndGet</span>();
+                <span class="tk-k">throw new</span> <span class="tk-t">CircuitOpenException</span>();
+            }
+        }
+        <span class="tk-k">try</span> {
+            <span class="tk-t">T</span> result = op.<span class="tk-n">call</span>();
+            onSuccess(s);
+            <span class="tk-k">return</span> result;
+        } <span class="tk-k">catch</span> (<span class="tk-t">Exception</span> e) {
+            onFailure(s);
+            <span class="tk-k">throw</span> e;
+        } <span class="tk-k">finally</span> {
+            <span class="tk-k">if</span> (s == <span class="tk-t">State</span>.<span class="tk-n">HALF_OPEN</span>) probesInFlight.<span class="tk-n">decrementAndGet</span>();
+        }
+    }
+
+    <span class="tk-k">private</span> <span class="tk-t">State</span> <span class="tk-n">currentState</span>() {
+        <span class="tk-t">State</span> s = state.<span class="tk-n">get</span>();
+        <span class="tk-k">if</span> (s == <span class="tk-t">State</span>.<span class="tk-n">OPEN</span>) {
+            <span class="tk-k">long</span> elapsed = <span class="tk-t">System</span>.<span class="tk-n">currentTimeMillis</span>() - openedAt.<span class="tk-n">get</span>();
+            <span class="tk-k">if</span> (elapsed &gt;= cfg.openDuration().<span class="tk-n">toMillis</span>()
+                    &amp;&amp; state.<span class="tk-n">compareAndSet</span>(<span class="tk-t">State</span>.<span class="tk-n">OPEN</span>, <span class="tk-t">State</span>.<span class="tk-n">HALF_OPEN</span>)) {
+                probesInFlight.<span class="tk-n">set</span>(<span class="tk-n">0</span>);
+                probeSuccesses.<span class="tk-n">set</span>(<span class="tk-n">0</span>);
+                <span class="tk-k">return</span> <span class="tk-t">State</span>.<span class="tk-n">HALF_OPEN</span>;
+            }
+        }
+        <span class="tk-k">return</span> state.<span class="tk-n">get</span>();
+    }
+
+    <span class="tk-k">private void</span> <span class="tk-n">onSuccess</span>(<span class="tk-t">State</span> observed) {
+        <span class="tk-k">if</span> (observed == <span class="tk-t">State</span>.<span class="tk-n">HALF_OPEN</span>) {
+            <span class="tk-k">if</span> (probeSuccesses.<span class="tk-n">incrementAndGet</span>() &gt;= cfg.halfOpenProbes()) {
+                <span class="tk-k">if</span> (state.<span class="tk-n">compareAndSet</span>(<span class="tk-t">State</span>.<span class="tk-n">HALF_OPEN</span>, <span class="tk-t">State</span>.<span class="tk-n">CLOSED</span>)) {
+                    outcomes.<span class="tk-n">reset</span>();
+                }
+            }
+        } <span class="tk-k">else</span> {
+            outcomes.<span class="tk-n">record</span>(<span class="tk-k">true</span>);
+        }
+    }
+
+    <span class="tk-k">private void</span> <span class="tk-n">onFailure</span>(<span class="tk-t">State</span> observed) {
+        <span class="tk-k">if</span> (observed == <span class="tk-t">State</span>.<span class="tk-n">HALF_OPEN</span>) {
+            trip();
+        } <span class="tk-k">else</span> {
+            outcomes.<span class="tk-n">record</span>(<span class="tk-k">false</span>);
+            <span class="tk-k">if</span> (outcomes.<span class="tk-n">failureRate</span>() &gt;= cfg.failureThreshold()
+                    &amp;&amp; outcomes.<span class="tk-n">filled</span>()) {
+                trip();
+            }
+        }
+    }
+
+    <span class="tk-k">private void</span> <span class="tk-n">trip</span>() {
+        <span class="tk-k">if</span> (state.<span class="tk-n">getAndSet</span>(<span class="tk-t">State</span>.<span class="tk-n">OPEN</span>) != <span class="tk-t">State</span>.<span class="tk-n">OPEN</span>) {
+            openedAt.<span class="tk-n">set</span>(<span class="tk-t">System</span>.<span class="tk-n">currentTimeMillis</span>());
+        }
+    }
+
+    <span class="tk-k">public</span> <span class="tk-t">State</span> <span class="tk-n">state</span>() { <span class="tk-k">return</span> state.<span class="tk-n">get</span>(); }
+
+    <span class="tk-c">// Lock-free-ish ring buffer for outcomes. Coarse but adequate.</span>
+    <span class="tk-k">private static final class</span> <span class="tk-t">RingBuffer</span> {
+        <span class="tk-k">private final boolean</span>[] buf;
+        <span class="tk-k">private final</span> <span class="tk-t">AtomicInteger</span> idx = <span class="tk-k">new</span> <span class="tk-t">AtomicInteger</span>();
+        <span class="tk-k">private volatile int</span> filled = <span class="tk-n">0</span>;
+        <span class="tk-k">private final</span> <span class="tk-t">Object</span> lock = <span class="tk-k">new</span> <span class="tk-t">Object</span>();
+
+        <span class="tk-t">RingBuffer</span>(<span class="tk-k">int</span> size) { <span class="tk-k">this</span>.buf = <span class="tk-k">new boolean</span>[size]; }
+
+        <span class="tk-k">void</span> <span class="tk-n">record</span>(<span class="tk-k">boolean</span> success) {
+            <span class="tk-k">synchronized</span> (lock) {
+                <span class="tk-k">int</span> i = idx.<span class="tk-n">getAndIncrement</span>() % buf.<span class="tk-n">length</span>;
+                buf[i] = success;
+                <span class="tk-k">if</span> (filled &lt; buf.<span class="tk-n">length</span>) filled++;
+            }
+        }
+
+        <span class="tk-k">double</span> <span class="tk-n">failureRate</span>() {
+            <span class="tk-k">synchronized</span> (lock) {
+                <span class="tk-k">if</span> (filled == <span class="tk-n">0</span>) <span class="tk-k">return</span> <span class="tk-n">0.0</span>;
+                <span class="tk-k">int</span> fails = <span class="tk-n">0</span>;
+                <span class="tk-k">for</span> (<span class="tk-k">int</span> i = <span class="tk-n">0</span>; i &lt; filled; i++) <span class="tk-k">if</span> (!buf[i]) fails++;
+                <span class="tk-k">return</span> (<span class="tk-k">double</span>) fails / filled;
+            }
+        }
+
+        <span class="tk-k">boolean</span> <span class="tk-n">filled</span>() { <span class="tk-k">return</span> filled == buf.<span class="tk-n">length</span>; }
+
+        <span class="tk-k">void</span> <span class="tk-n">reset</span>() { <span class="tk-k">synchronized</span> (lock) { idx.<span class="tk-n">set</span>(<span class="tk-n">0</span>); filled = <span class="tk-n">0</span>; } }
+    }
+}</code></pre>
+
+        <div class="discussion">
+          <div class="label-row">▸ Discussion / Follow-ups</div>
+          <ul>
+            <li><strong>Why CAS for state transitions?</strong> Two threads tripping the breaker simultaneously could otherwise overwrite <code>openedAt</code> and confuse the timer. CAS makes the transition exactly-once.</li>
+            <li><strong>Why not <code>volatile</code> alone?</strong> <code>volatile</code> gives visibility but not atomic compound updates. Compare-and-set is the right primitive for state machines.</li>
+            <li><strong>Time-based windows?</strong> The ring buffer is count-based. Time-based requires bucketing by time slot — easy extension.</li>
+            <li><strong>Production?</strong> Resilience4j. Mention it. They handle slow-call detection, listeners, metrics, and bulkheading.</li>
+            <li><strong>Why require the buffer to be filled before tripping?</strong> Without it, a single failure from a cold start trips the breaker. Common bug.</li>
+          </ul>
+        </div>
+
+        <a href="#top" class="top-link">↑ Back to top</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- PROBLEM 12 -->
+  <!-- ============================================ -->
+  <section class="problem" id="p12">
+    <div class="problem-head">
+      <div class="num">№ 12</div>
+      <h2>In-memory <em>job queue</em></h2>
+      <div class="meta">
+        <strong>~55 min</strong>
+        Primitive
+        <span class="difficulty hard">Hard</span>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Prompt</div>
+      <div class="content">
+        <p>Build an in-memory job queue with <code>submit(Job, priority, runAt)</code> and a worker pool that pulls and runs jobs. Higher priority runs first; same priority runs in submission order. Jobs scheduled in the future shouldn't be picked up until their <code>runAt</code> time. Failed jobs retry up to N times with backoff. Multiple workers pull concurrently without dropping or duplicating jobs.</p>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Clarify</div>
+      <div class="content">
+        <ul>
+          <li>Is durability required, or in-memory only? (In-memory per the prompt.)</li>
+          <li>What about job cancellation?</li>
+          <li>Should retries respect the original priority, or be deprioritized?</li>
+          <li>Is there a max queue size — and what happens when full?</li>
+        </ul>
+
+        <details class="hints">
+          <summary>Hints</summary>
+          <ol>
+            <li><code>DelayQueue</code> from <code>java.util.concurrent</code> handles "pickup after time T" beautifully.</li>
+            <li>For priority + FIFO tiebreak: combine priority with a monotonic submission sequence in the comparator.</li>
+            <li>Workers are just N threads in a loop calling <code>queue.take()</code>.</li>
+            <li>Reject the temptation to combine priority queue + scheduled executor manually. <code>DelayQueue</code> with a custom <code>Delayed</code> does both.</li>
+          </ol>
+        </details>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Solution</div>
+      <div class="content">
+<pre class="code"><code><span class="tk-k">import</span> java.time.*;
+<span class="tk-k">import</span> java.util.concurrent.*;
+<span class="tk-k">import</span> java.util.concurrent.atomic.*;
+
+<span class="tk-k">public class</span> <span class="tk-t">JobQueue</span> <span class="tk-k">implements</span> <span class="tk-t">AutoCloseable</span> {
+
+    <span class="tk-k">public interface</span> <span class="tk-t">Job</span> { <span class="tk-k">void</span> <span class="tk-n">run</span>() <span class="tk-k">throws</span> <span class="tk-t">Exception</span>; }
+
+    <span class="tk-k">private static final</span> <span class="tk-t">AtomicLong</span> <span class="tk-n">SEQ</span> = <span class="tk-k">new</span> <span class="tk-t">AtomicLong</span>();
+
+    <span class="tk-k">private static final class</span> <span class="tk-t">Task</span> <span class="tk-k">implements</span> <span class="tk-t">Delayed</span> {
+        <span class="tk-k">final</span> <span class="tk-t">Job</span> job;
+        <span class="tk-k">final int</span> priority;             <span class="tk-c">// higher = sooner</span>
+        <span class="tk-k">final long</span> seq;                 <span class="tk-c">// FIFO tiebreak</span>
+        <span class="tk-k">long</span> readyAtNanos;
+        <span class="tk-k">int</span> attempt;
+        <span class="tk-k">final int</span> maxAttempts;
+
+        <span class="tk-t">Task</span>(<span class="tk-t">Job</span> j, <span class="tk-k">int</span> pri, <span class="tk-t">Instant</span> runAt, <span class="tk-k">int</span> maxAttempts) {
+            <span class="tk-k">this</span>.job = j;
+            <span class="tk-k">this</span>.priority = pri;
+            <span class="tk-k">this</span>.seq = <span class="tk-t">SEQ</span>.<span class="tk-n">getAndIncrement</span>();
+            <span class="tk-k">this</span>.readyAtNanos = toNanos(runAt);
+            <span class="tk-k">this</span>.maxAttempts = maxAttempts;
+        }
+
+        <span class="tk-k">public long</span> <span class="tk-n">getDelay</span>(<span class="tk-t">TimeUnit</span> unit) {
+            <span class="tk-k">return</span> unit.<span class="tk-n">convert</span>(readyAtNanos - <span class="tk-t">System</span>.<span class="tk-n">nanoTime</span>(), <span class="tk-t">TimeUnit</span>.<span class="tk-n">NANOSECONDS</span>);
+        }
+
+        <span class="tk-k">public int</span> <span class="tk-n">compareTo</span>(<span class="tk-t">Delayed</span> o) {
+            <span class="tk-t">Task</span> other = (<span class="tk-t">Task</span>) o;
+            <span class="tk-c">// 1) ready-time; 2) priority desc; 3) seq asc</span>
+            <span class="tk-k">int</span> c = <span class="tk-t">Long</span>.<span class="tk-n">compare</span>(<span class="tk-k">this</span>.readyAtNanos, other.readyAtNanos);
+            <span class="tk-k">if</span> (c != <span class="tk-n">0</span>) <span class="tk-k">return</span> c;
+            c = <span class="tk-t">Integer</span>.<span class="tk-n">compare</span>(other.priority, <span class="tk-k">this</span>.priority);
+            <span class="tk-k">if</span> (c != <span class="tk-n">0</span>) <span class="tk-k">return</span> c;
+            <span class="tk-k">return</span> <span class="tk-t">Long</span>.<span class="tk-n">compare</span>(<span class="tk-k">this</span>.seq, other.seq);
+        }
+
+        <span class="tk-k">static long</span> <span class="tk-n">toNanos</span>(<span class="tk-t">Instant</span> when) {
+            <span class="tk-k">long</span> deltaMs = when.<span class="tk-n">toEpochMilli</span>() - <span class="tk-t">System</span>.<span class="tk-n">currentTimeMillis</span>();
+            <span class="tk-k">return</span> <span class="tk-t">System</span>.<span class="tk-n">nanoTime</span>() + <span class="tk-t">TimeUnit</span>.<span class="tk-n">MILLISECONDS</span>.<span class="tk-n">toNanos</span>(<span class="tk-t">Math</span>.<span class="tk-n">max</span>(<span class="tk-n">0</span>, deltaMs));
+        }
+    }
+
+    <span class="tk-k">private final</span> <span class="tk-t">DelayQueue</span>&lt;<span class="tk-t">Task</span>&gt; queue = <span class="tk-k">new</span> <span class="tk-t">DelayQueue</span>&lt;&gt;();
+    <span class="tk-k">private final</span> <span class="tk-t">Thread</span>[] workers;
+    <span class="tk-k">private volatile boolean</span> running = <span class="tk-k">true</span>;
+
+    <span class="tk-k">public</span> <span class="tk-t">JobQueue</span>(<span class="tk-k">int</span> workerCount) {
+        workers = <span class="tk-k">new</span> <span class="tk-t">Thread</span>[workerCount];
+        <span class="tk-k">for</span> (<span class="tk-k">int</span> i = <span class="tk-n">0</span>; i &lt; workerCount; i++) {
+            workers[i] = <span class="tk-k">new</span> <span class="tk-t">Thread</span>(<span class="tk-k">this</span>::<span class="tk-n">runLoop</span>, <span class="tk-s">"jobworker-"</span> + i);
+            workers[i].<span class="tk-n">setDaemon</span>(<span class="tk-k">true</span>);
+            workers[i].<span class="tk-n">start</span>();
+        }
+    }
+
+    <span class="tk-k">public void</span> <span class="tk-n">submit</span>(<span class="tk-t">Job</span> j, <span class="tk-k">int</span> priority, <span class="tk-t">Instant</span> runAt, <span class="tk-k">int</span> maxAttempts) {
+        queue.<span class="tk-n">offer</span>(<span class="tk-k">new</span> <span class="tk-t">Task</span>(j, priority, runAt, maxAttempts));
+    }
+
+    <span class="tk-k">public void</span> <span class="tk-n">submit</span>(<span class="tk-t">Job</span> j) { submit(j, <span class="tk-n">0</span>, <span class="tk-t">Instant</span>.<span class="tk-n">now</span>(), <span class="tk-n">3</span>); }
+
+    <span class="tk-k">private void</span> <span class="tk-n">runLoop</span>() {
+        <span class="tk-k">while</span> (running) {
+            <span class="tk-k">try</span> {
+                <span class="tk-t">Task</span> t = queue.<span class="tk-n">take</span>();
+                <span class="tk-k">try</span> {
+                    t.job.<span class="tk-n">run</span>();
+                } <span class="tk-k">catch</span> (<span class="tk-t">Exception</span> e) {
+                    t.attempt++;
+                    <span class="tk-k">if</span> (t.attempt &lt; t.maxAttempts) {
+                        <span class="tk-c">// requeue with exponential backoff</span>
+                        <span class="tk-k">long</span> backoffMs = <span class="tk-n">100L</span> * (<span class="tk-n">1L</span> &lt;&lt; t.attempt);
+                        t.readyAtNanos = <span class="tk-t">System</span>.<span class="tk-n">nanoTime</span>()
+                            + <span class="tk-t">TimeUnit</span>.<span class="tk-n">MILLISECONDS</span>.<span class="tk-n">toNanos</span>(backoffMs);
+                        queue.<span class="tk-n">offer</span>(t);
+                    } <span class="tk-k">else</span> {
+                        <span class="tk-t">System</span>.<span class="tk-n">err</span>.<span class="tk-n">printf</span>(<span class="tk-s">"job exhausted retries: %s%n"</span>, e);
+                    }
+                }
+            } <span class="tk-k">catch</span> (<span class="tk-t">InterruptedException</span> ie) {
+                <span class="tk-t">Thread</span>.<span class="tk-n">currentThread</span>().<span class="tk-n">interrupt</span>();
+                <span class="tk-k">return</span>;
+            }
+        }
+    }
+
+    <span class="tk-k">public void</span> <span class="tk-n">close</span>() <span class="tk-k">throws</span> <span class="tk-t">InterruptedException</span> {
+        running = <span class="tk-k">false</span>;
+        <span class="tk-k">for</span> (<span class="tk-t">Thread</span> w : workers) w.<span class="tk-n">interrupt</span>();
+        <span class="tk-k">for</span> (<span class="tk-t">Thread</span> w : workers) w.<span class="tk-n">join</span>(<span class="tk-n">1000</span>);
+    }
+}</code></pre>
+
+        <div class="discussion">
+          <div class="label-row">▸ Discussion / Follow-ups</div>
+          <ul>
+            <li><strong>Why <code>DelayQueue</code> over a custom priority queue + sleep?</strong> Built-in: blocking <code>take()</code> wakes exactly when the next item is ready. No polling, no thread coordination bugs.</li>
+            <li><strong>Why bake priority into the comparator?</strong> Tiebreaking by submission sequence gives FIFO-within-priority — exactly what most users mean by "priority queue."</li>
+            <li><strong>Persistence?</strong> Outside the prompt, but the design extends cleanly: write submissions to a WAL, replay on startup. Or back the queue with Redis sorted sets / a real broker (RabbitMQ, SQS).</li>
+            <li><strong>Backpressure?</strong> Add a bounded variant — <code>submit</code> blocks or rejects when full. Ask the interviewer which.</li>
+            <li><strong>Why daemon threads?</strong> So the JVM can exit cleanly without explicit close (though <code>close()</code> is provided for ordered shutdown).</li>
+            <li><strong>Cancellation?</strong> Return a handle from <code>submit</code>; cancellation removes from the queue or sets a flag the job checks.</li>
+          </ul>
+        </div>
+
+        <a href="#top" class="top-link">↑ Back to top</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="colophon">
+      <strong style="color: var(--ink);">A practice set</strong> · 12 problems for the practical-coding round · Java 17 idioms · Set in Fraunces &amp; JetBrains Mono · Share freely
+    </div>
+    <div class="stamp">
+      Ship something today<br>
+      <big>—</big>
+    </div>
+  </footer>
+
+</div>
+
+</body>
+</html>
