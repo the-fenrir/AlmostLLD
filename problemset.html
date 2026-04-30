@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -496,6 +495,50 @@
   /* Override the JAVA badge color when showing C++ */
   pre.code.cpp::before { content: 'C++17'; }
 
+
+  /* APPROACH block */
+  .approach {
+    background: rgba(245,213,71,0.12);
+    border-left: 3px solid var(--hi);
+    padding: 22px 28px;
+    margin: 0 0 24px 0;
+    border-radius: 2px;
+  }
+  .approach .label-row {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #9b7f00;
+    margin-bottom: 14px;
+    border-bottom: 1px solid rgba(155,127,0,0.3);
+    padding-bottom: 8px;
+  }
+  .approach p { font-size: 16px; line-height: 1.65; margin-bottom: 12px; }
+  .approach p:last-child { margin-bottom: 0; }
+  .approach ul, .approach ol { padding-left: 22px; margin: 8px 0 14px 0; }
+  .approach ul li, .approach ol li { font-size: 16px; line-height: 1.6; margin-bottom: 8px; }
+  .approach code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    background: rgba(255,255,255,0.6);
+    padding: 1px 5px;
+    border-radius: 2px;
+  }
+  .approach strong { font-weight: 600; }
+  .approach em { font-style: italic; }
+
+  /* Discussion list nesting cleaner */
+  .discussion ul li { margin-bottom: 12px; }
+  .discussion code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    background: rgba(255,255,255,0.5);
+    padding: 1px 5px;
+    border-radius: 2px;
+  }
+  .discussion p { font-size: 16px; line-height: 1.65; margin-bottom: 10px; }
+
 </style>
 </head>
 <body>
@@ -520,10 +563,10 @@
       Built for the Round
     </h1>
     <p class="deck reveal">
-      Production-flavored problems with full Java solutions, hints, and the follow-up questions that <em style="color: var(--accent);">actually decide</em> the score. Not LeetCode. Not toy code.
+      Production-flavored problems with detailed design walkthroughs, full Java &amp; C++ solutions, and the follow-up questions <em style="color: var(--accent);">with answers</em>. Not LeetCode. Not toy code.
     </p>
     <div class="hero-meta reveal">
-      <div><span>Language</span><strong>Java 17</strong></div>
+      <div><span>Language</span><strong>Java 17 + C++17</strong></div>
       <div><span>Level</span><strong>Mid-level (2–5 yrs)</strong></div>
       <div><span>Problems</span><strong>12, mixed archetypes</strong></div>
       <div><span>Per problem</span><strong>30–60 min</strong></div>
@@ -591,6 +634,24 @@
             <li>Skip malformed lines silently but track a count — interviewers love seeing observability instincts.</li>
           </ol>
         </details>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Approach</div>
+      <div class="content">
+        <div class="approach">
+          <div class="label-row">▸ Design</div>
+          <p>Three sub-problems, each with a textbook answer:</p>
+<ul>
+<li><strong>Reading the file</strong> — the file might be huge, so streaming line-by-line wins over slurping it whole. Memory stays constant in the file size; the bottleneck becomes disk I/O, which is fine.</li>
+<li><strong>Counting</strong> — a hash map from IP → count. <code>O(1)</code> amortized per line, total <code>O(N)</code> where N is the line count.</li>
+<li><strong>Selecting top-K</strong> — the naïve sort is <code>O(U log U)</code> where U is the number of unique IPs. A min-heap of size K does it in <code>O(U log K)</code>, which matters when K ≪ U (the common case — top 10 from millions of unique addresses).</li>
+</ul>
+<p>The min-heap trick: keep a heap of size K with the smallest count at the top. For each candidate, push it; if the heap exceeds K, pop the smallest. After processing all candidates, the heap holds the top K.</p>
+<p><strong>Tie-breaking</strong> is the subtle part. The problem says ties go to the lexicographically smaller IP. So in the heap's ordering, we want the smaller IP to <em>survive</em> when counts are equal — meaning the larger IP should bubble to the top (be evicted first). That's why the comparator inverts the IP order.</p>
+<p><strong>Malformed lines</strong> are silently skipped, but the count is logged. This is a small detail interviewers love: it shows you're thinking about observability without being asked.</p>
+        </div>
       </div>
     </div>
 
@@ -747,18 +808,16 @@
 </div>
 
         <div class="discussion">
-          <div class="label-row">▸ Discussion / Follow-ups</div>
+          <div class="label-row">▸ Discussion / Follow-ups (with answers)</div>
           <ul>
-            <li><strong>Scale to 10× the data?</strong> Single-machine: same approach, the bottleneck is disk I/O. Multi-machine: count per shard, merge counters, then top-K on the merged map. Or use Count-Min Sketch for approximate counts with bounded memory.</li>
-            <li><strong>Concurrent writers?</strong> Switch <code>HashMap</code> → <code>ConcurrentHashMap</code> with <code>compute</code>/<code>merge</code>; parallelize the line-reading with a producer-consumer queue.</li>
-            <li><strong>Why not <code>Stream.sorted().limit(k)</code>?</strong> That's <code>O(N log N)</code>; the heap is <code>O(N log K)</code> which matters when K ≪ N.</li>
-            <li><strong>What if the file is gzipped?</strong> Wrap the stream: <code>new BufferedReader(new InputStreamReader(new GZIPInputStream(...)))</code>.</li>
-          </ul>
+<li><strong>How do you scale to 10× the data?</strong> On a single machine, the approach is unchanged — disk I/O dominates and the algorithm is already linear. For multi-machine: shard the file by hash, count per shard, merge counters across shards, then top-K on the merged map. If approximate is acceptable, <strong>Count-Min Sketch</strong> with a small fixed memory footprint gives bounded-error counts regardless of cardinality. Top-K with sketches is a well-studied problem; the Misra-Gries summary is the textbook algorithm.</li>
+<li><strong>How do you handle concurrent writers (live tail of a log)?</strong> Replace the hash map with a concurrent map (<code>ConcurrentHashMap</code> in Java, a sharded map or <code>tbb::concurrent_hash_map</code> in C++). Use the atomic update primitives (<code>compute</code>, <code>merge</code>) rather than read-modify-write to avoid races. For very high write rates, per-thread local maps with periodic merging (à la <code>LongAdder</code>) reduces contention significantly.</li>
+<li><strong>Why not <code>Stream.sorted().limit(K)</code> or <code>std::partial_sort</code>?</strong> Both are <code>O(N log N)</code> in the worst case for the full sort variant, or <code>O(N log K)</code> for partial-sort. The min-heap is also <code>O(N log K)</code>, so they're equivalent on paper. The heap wins when you don't want to materialize the full count list — for streaming top-K it's natural.</li>
+<li><strong>What if the file is gzipped?</strong> Wrap the input stream: <code>GZIPInputStream</code> in Java, <code>boost::iostreams::filtering_istream</code> with a gzip filter in C++. The parsing logic is unchanged. Worth mentioning that decompression is single-threaded for a single .gz file — for parallel decompression you need split files or a parallel codec like pigz/zstd.</li>
+<li><strong>How would you handle IPv6?</strong> The validator's the only thing to change. The structural approach is the same — first whitespace-separated token, validate it's a parseable address. <code>InetAddress.getByName</code> (Java) or <code>inet_pton</code> (C++) handle both v4 and v6 if you want a more permissive validator.</li>
+<li><strong>What if you only need approximate top-K with bounded memory?</strong> The <strong>Misra-Gries</strong> summary tracks K candidate counters and converges to the true top-K with bounded error proportional to N/K. Implementations are short (~30 lines) and the technique is what most database engines use internally for "top frequent values" estimation.</li>
+</ul>
         </div>
-
-        <a href="#top" class="top-link">↑ Back to top</a>
-      </div>
-    </div>
   </section>
 
   <!-- ============================================ -->
@@ -802,6 +861,21 @@
             <li>For thread-safety, the simple deque version with a single lock is often plenty.</li>
           </ol>
         </details>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Approach</div>
+      <div class="content">
+        <div class="approach">
+          <div class="label-row">▸ Design</div>
+          <p>The naïve approach — a deque of every event with timestamps, popping expired ones on each query — works but grows unboundedly with traffic. A high-QPS service can fill it faster than queries can drain it.</p>
+<p>The fix is <strong>bucketing</strong>. Quantize timestamps to second-resolution buckets and keep a fixed-size ring of <code>(total, errors)</code> counters, one per second of the window. A 60-second window needs 60 buckets — total memory is bounded regardless of QPS.</p>
+<p>The clever part is handling <strong>bucket reuse</strong>. When the second wraps around (e.g., second 137 lands on the same array slot as second 77 in a 60-second window), we detect the staleness via the stored <code>epochSec</code> and reset the bucket. This avoids needing a separate "clear" pass.</p>
+<p><strong>Out-of-order events</strong> within the window are handled correctly because each event finds its own bucket by timestamp. Events older than the window get written into stale buckets that the query then ignores (because their <code>epochSec</code> is outside the query range).</p>
+<p><strong>Complexity</strong>: <code>O(1)</code> writes, <code>O(W)</code> queries where W is the window size in buckets. For larger windows, queries can be made <code>O(1)</code> too by maintaining running sums and updating them on bucket reset.</p>
+<p><strong>Concurrency</strong>: a single mutex around the bucket array is the cleanest answer. Per-bucket locking is possible but rarely worth the complexity unless profiling shows the mutex is hot. <code>LongAdder</code> (Java) or sharded counters can help if it is.</p>
+        </div>
       </div>
     </div>
 
@@ -931,18 +1005,16 @@
 </div>
 
         <div class="discussion">
-          <div class="label-row">▸ Discussion / Follow-ups</div>
+          <div class="label-row">▸ Discussion / Follow-ups (with answers)</div>
           <ul>
-            <li><strong>Why bucketing?</strong> A naïve deque grows with traffic; the bucket array uses fixed memory regardless of QPS.</li>
-            <li><strong>O(1) queries?</strong> Maintain running totals updated on bucket reset. Trade some complexity for constant-time reads.</li>
-            <li><strong>Sub-second windows?</strong> Use millisecond buckets — same structure, more memory.</li>
-            <li><strong>Lock contention?</strong> Per-bucket locks, or use <code>LongAdder</code>s in each bucket. At very high rates, consider <code>StampedLock</code> or sharded counters.</li>
-          </ul>
+<li><strong>How do you make queries <code>O(1)</code>?</strong> Maintain running totals (<code>totalSum</code>, <code>totalErrors</code>) updated on every record and on every bucket reset. When a stale bucket gets reused, subtract its old <code>(total, errors)</code> from the running totals before overwriting. Queries then just read the totals. Trade-off: more bookkeeping on writes, but the writes were already <code>O(1)</code>.</li>
+<li><strong>How do you handle sub-second windows?</strong> Same structure with millisecond-resolution buckets. A 1-second window with 10ms buckets needs 100 slots. Memory scales linearly with resolution; pick based on how spiky your traffic is. For 100ms+ windows on a typical service, second-resolution is plenty.</li>
+<li><strong>What about lock contention at very high QPS?</strong> Three options, in order of effort: (1) <code>LongAdder</code> per bucket field (Java) or sharded counters (C++) — eliminates contention at the cost of a more expensive read. (2) <code>StampedLock</code> with optimistic reads — readers don't block writers. (3) Per-bucket atomics with explicit memory ordering. In practice, option (1) covers 99% of real loads.</li>
+<li><strong>How do you handle very out-of-order events?</strong> Up to one window of skew is handled correctly by design — a late event finds its own bucket. Events older than a full window get written into stale buckets that are then ignored by queries. If you need true late-arrival accounting (e.g., events arriving 10 minutes late in a 1-minute window), you need a different structure — typically a sliding-window log retention with explicit late-data side outputs (the streaming-systems "watermark" model).</li>
+<li><strong>Should 4xx really count as errors?</strong> Depends on what you're measuring. Service health: 5xx only. Client experience: 4xx + 5xx. 429 (rate-limited) is debatable — it indicates traffic-shaping working as intended, not service degradation. Real implementations often expose this as a configurable predicate (e.g., <code>isError: status -&gt; status &gt;= 500 || status == 429</code>) and let the caller decide.</li>
+<li><strong>How do you compute percentile latencies, not just rates?</strong> Different problem entirely — count buckets aren't enough. You need a sketch like <strong>HdrHistogram</strong> or <strong>t-digest</strong> per bucket. They give bounded-error percentile estimates with ~kilobytes of memory and merge across buckets correctly.</li>
+</ul>
         </div>
-
-        <a href="#top" class="top-link">↑ Back to top</a>
-      </div>
-    </div>
   </section>
 
   <!-- ============================================ -->
@@ -985,6 +1057,21 @@
             <li>TTL: store <code>expiresAt</code> on each node, check on <code>get</code>.</li>
           </ol>
         </details>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Approach</div>
+      <div class="content">
+        <div class="approach">
+          <div class="label-row">▸ Design</div>
+          <p>The standard LRU structure is <strong>hash map + doubly-linked list</strong>. The hash map gives <code>O(1)</code> key lookup; the list gives <code>O(1)</code> insertion and removal anywhere. Combined, <code>get</code> and <code>put</code> are both <code>O(1)</code>.</p>
+<p>The list is ordered MRU-to-LRU (most-recently-used at the head, least-recently-used at the tail). On <code>get</code> or <code>put</code>, the touched node moves to the head. When the cache exceeds capacity, the tail node is evicted.</p>
+<p><strong>Sentinel nodes</strong> at head and tail simplify the linked-list operations enormously. Without them, every insert/remove needs special-cases for empty list, single-element list, head insertion, tail removal. With them, every operation is just "splice this node between two others" — no branches.</p>
+<p><strong>Concurrency</strong>: a single mutex is the right answer for a mid-level interview. Read-write locks <em>look</em> tempting but don't help — every <code>get</code> still mutates the list (move-to-front), so it's a write. Striped locking (sharding by hash bucket) is the next step up; full lock-free is rarely justified outside libraries like Caffeine.</p>
+<p><strong>TTL</strong> piggybacks naturally: store an <code>expiresAt</code> on each node and check it on <code>get</code>. Expired entries get evicted lazily on access. A separate sweeper thread for proactive expiration is a follow-up — not needed for correctness.</p>
+<p><strong>Quick alternative worth mentioning</strong>: Java's <code>LinkedHashMap</code> with <code>accessOrder=true</code> and an overridden <code>removeEldestEntry</code> gives you LRU in five lines. Good for showing breadth, but doesn't support TTL or fine-grained concurrency.</p>
+        </div>
       </div>
     </div>
 
@@ -1136,18 +1223,16 @@
 </div>
 
         <div class="discussion">
-          <div class="label-row">▸ Discussion / Follow-ups</div>
+          <div class="label-row">▸ Discussion / Follow-ups (with answers)</div>
           <ul>
-            <li><strong>Read-heavy workload?</strong> A single mutex is a contention point. Options: <code>ReadWriteLock</code> (but moves-to-front are writes!), striped locking by hash bucket, or Caffeine-style ring-buffer batching of access events.</li>
-            <li><strong>Why not <code>LinkedHashMap</code>?</strong> Override <code>removeEldestEntry</code>. Quick to write, but doesn't give you TTL or fine-grained concurrency.</li>
-            <li><strong>Production-grade?</strong> Use Caffeine. Mention it — interviewers love hearing the candidate has reached for a real library.</li>
-            <li><strong>Memory pressure?</strong> Add a size-aware eviction (weight per entry) or soft references.</li>
-          </ul>
+<li><strong>How do you reduce contention on read-heavy workloads?</strong> Counterintuitively, a read-write lock <em>doesn't help</em> — every <code>get</code> mutates the linked list (move-to-front), so all "reads" are actually writes. Real solutions: (a) <strong>Striped locking</strong> — shard by key hash into N independent caches each with its own lock. Reduces contention by N. (b) <strong>Caffeine's approach</strong> (Java) — buffer access events in per-thread ring buffers, replay them in batches under the cache lock. Decouples the hot path from the eviction state machine. (c) Approximate LRU using <strong>CLOCK</strong> or <strong>2Q</strong> algorithms with atomic flags instead of a linked list.</li>
+<li><strong>What about <code>LinkedHashMap</code> with <code>accessOrder=true</code>?</strong> Five lines of code, gives you basic LRU. Limitations: not thread-safe (wrap with <code>Collections.synchronizedMap</code>), no TTL, can't easily customize eviction. Fine for small in-process caches; not for hot-path service caches. C++ has no direct equivalent — you'd build it.</li>
+<li><strong>What's the production-grade answer?</strong> Java: <strong>Caffeine</strong>. Window-TinyLFU eviction (smarter than LRU on real workloads), async refresh, statistics, weight-based sizing, automatic cleanup. C++: <strong>folly::EvictingCacheMap</strong>, <strong>boost::compute::detail::lru_cache</strong>, or roll your own — ecosystem is more fragmented. Always mention the library in interviews; it shows you know not to reinvent.</li>
+<li><strong>How do you handle memory pressure?</strong> Two extensions. (a) <strong>Weight-based sizing</strong> — entries declare their size in bytes, eviction is by total weight rather than count. Caffeine supports this directly. (b) <strong>Soft references</strong> — entries are GC-eligible under memory pressure (Java only; C++ has no equivalent). Soft refs give worst-case-throughput rather than worst-case-memory; they're a tail-latency footgun in production.</li>
+<li><strong>What if you need TTL with proactive expiration?</strong> Lazy expiration (the design here) is correct but lets dead entries accumulate. Active expiration runs a periodic sweeper or maintains a separate min-heap by expiry time. Caffeine uses a hierarchical timing wheel — <code>O(1)</code> insertion and expiration with bounded slot count. Implementing it is overkill for an interview but worth knowing the term.</li>
+<li><strong>What's the difference between LRU and LFU?</strong> LRU evicts the least-recently-used; LFU evicts the least-<em>frequently</em>-used. LFU resists scan-based pollution (a one-time bulk read doesn't evict your hot data) but needs frequency tracking. <strong>TinyLFU</strong> combines both: a sketch tracks frequency, the cache uses LRU as the base structure, and admission decisions consult the sketch. This is what Caffeine does and why it beats pure LRU on most real workloads.</li>
+</ul>
         </div>
-
-        <a href="#top" class="top-link">↑ Back to top</a>
-      </div>
-    </div>
   </section>
 
   <!-- ============================================ -->
@@ -1189,6 +1274,21 @@
             <li>For inactive-user cleanup, mention TTL eviction or a Caffeine cache as the bucket store.</li>
           </ol>
         </details>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Approach</div>
+      <div class="content">
+        <div class="approach">
+          <div class="label-row">▸ Design</div>
+          <p>Token bucket has two parameters: capacity <code>C</code> (max burst) and refill rate <code>R</code> (tokens per second). The bucket starts full; every request consumes a token; tokens replenish over time up to <code>C</code>.</p>
+<p>The naïve implementation uses a background thread that refills every bucket every tick. <strong>Don't do that.</strong> With millions of users, the refiller becomes a CPU sink and a contention point. Instead, refill <strong>lazily</strong>: on each <code>tryAcquire</code>, compute how much time has elapsed since the last update and add the corresponding tokens (capped at capacity). Zero background work, zero idle cost.</p>
+<p><strong>Per-user buckets</strong> live in a concurrent map keyed by user ID. The map provides safe concurrent insertion. Each bucket has its own lock — synchronizing on the bucket object itself scopes contention to a single user, so user A's traffic doesn't block user B's.</p>
+<p><strong>Why <code>nanoTime</code> / <code>steady_clock</code></strong> instead of wall-clock time? Both are monotonic — they never go backward, even if the system clock gets adjusted by NTP. Time-since calculations using wall-clock can produce negative deltas during clock corrections, which corrupts the token math.</p>
+<p><strong>Why <code>double</code> for tokens?</strong> Allows fractional refill rates (e.g., 0.5 req/sec for slow APIs) and variable-cost permits (an "expensive" endpoint can charge 5 tokens per call).</p>
+<p><strong>Memory growth</strong> is the one issue this design has — inactive users' buckets stay forever. The fix is wrapping the map in a TTL cache (Caffeine, in Java; a simple LRU is fine in C++) so buckets for users idle longer than, say, 1 hour get evicted.</p>
+        </div>
       </div>
     </div>
 
@@ -1317,19 +1417,16 @@
 </div>
 
         <div class="discussion">
-          <div class="label-row">▸ Discussion / Follow-ups</div>
+          <div class="label-row">▸ Discussion / Follow-ups (with answers)</div>
           <ul>
-            <li><strong>Why <code>nanoTime</code> not <code>currentTimeMillis</code>?</strong> Monotonic — won't go backward on NTP adjustments. Critical for time-since calculations.</li>
-            <li><strong>Memory growth?</strong> Wrap <code>buckets</code> in a Caffeine cache with expire-after-access; idle users' buckets get GC'd.</li>
-            <li><strong>Distributed?</strong> Move state to Redis. Use a Lua script for atomic check-and-decrement, or use Redis's built-in <code>CL.THROTTLE</code> from RedisCell.</li>
-            <li><strong>Token bucket vs leaky bucket vs sliding window?</strong> Token bucket allows bursts up to capacity; leaky bucket smooths traffic; sliding window log is more accurate but memory-heavy.</li>
-            <li><strong>Why double tokens?</strong> Allows fractional refill rates (e.g. 0.5/s) and variable-cost permits.</li>
-          </ul>
+<li><strong>How does this work in a distributed system across N servers?</strong> The single-instance solution divides the rate by N (each server gets <code>R/N</code>) — works but is sloppy at boundaries. The real answer is centralized state in <strong>Redis</strong>: a Lua script that atomically reads-checks-decrements the bucket. Atomicity is the key feature — without it, two servers can both observe "1 token left" and both consume it. RedisCell (a Redis module) ships <code>CL.THROTTLE</code> which does exactly this with a single command. For very high QPS, regional Redis clusters with sharded keys keep latency bounded.</li>
+<li><strong>Token bucket vs leaky bucket vs sliding window log?</strong> <strong>Token bucket</strong> allows bursts up to capacity, then sustained rate — good for client APIs where occasional bursts are fine. <strong>Leaky bucket</strong> smooths traffic to a constant outflow regardless of input — better for rate-shaping outbound traffic. <strong>Sliding window log</strong> stores every request timestamp; very accurate but memory-heavy. <strong>Sliding window counter</strong> is the practical compromise — bucketed counts approximate a sliding window with bounded memory. Most production systems use token bucket or sliding window counter; rate-shapers use leaky bucket.</li>
+<li><strong>How do you prevent unbounded memory growth from inactive users?</strong> Wrap the bucket map in a TTL cache. <strong>Caffeine</strong> with <code>expireAfterAccess(1, HOUR)</code> evicts buckets for users idle for an hour. The amortized cost is negligible — eviction runs lazily on access. C++: same idea, build with a Caffeine-like LRU + TTL. The TTL must be long enough that an evicted-then-returning user gets a fresh full bucket — that's actually correct behavior for a returning user, not a bug.</li>
+<li><strong>Should returning <code>false</code> include retry-after metadata?</strong> Yes — for HTTP rate limiters, return the time until the next token is available so clients can retry intelligently rather than poll. Compute as <code>(permits - tokens) / refillRate</code>. Returning a richer result type (<code>RateLimitDecision</code> with <code>allowed: bool, retryAfter: Duration</code>) is the production shape.</li>
+<li><strong>Are tier-specific limits hard to add?</strong> No — make capacity and rate per-bucket parameters rather than per-limiter. Look up the user's tier when constructing the bucket. Premium users get <code>(capacity=1000, rate=100)</code>, free users get <code>(capacity=100, rate=10)</code>. Same code path.</li>
+<li><strong>How do you implement variable-cost operations (expensive endpoints)?</strong> The <code>tryAcquire(userId, permits)</code> overload — already in the example. An expensive endpoint passes <code>permits=10</code>; a cheap one passes <code>permits=1</code>. Be careful with refill semantics: a user with 5 tokens calling a 10-token endpoint should fail, not partially consume.</li>
+</ul>
         </div>
-
-        <a href="#top" class="top-link">↑ Back to top</a>
-      </div>
-    </div>
   </section>
 
   <!-- ============================================ -->
@@ -1372,6 +1469,26 @@
             <li>Throw a wrapping exception with the last cause if all attempts exhausted — preserves the stack trace.</li>
           </ol>
         </details>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Approach</div>
+      <div class="content">
+        <div class="approach">
+          <div class="label-row">▸ Design</div>
+          <p>Three pieces:</p>
+<ol>
+<li><strong>The retry loop</strong>: try, catch retriable, sleep, repeat up to N times.</li>
+<li><strong>The backoff</strong>: exponential — delay roughly doubles each attempt — capped at a maximum.</li>
+<li><strong>The jitter</strong>: randomize within the backoff window to prevent thundering herds.</li>
+</ol>
+<p><strong>Why jitter matters</strong>: if 1000 clients all retry exactly 100ms after a failure, they hit the recovering server simultaneously. With <em>full jitter</em> — sleep a uniform random time in <code>[0, exp_backoff]</code> — the retries spread out evenly across the window. AWS published a much-cited blog showing full jitter is empirically better than equal jitter or decorrelated jitter for most workloads.</p>
+<p><strong>What's "retriable"?</strong> Network timeouts, 5xx responses, connection failures — yes. Authentication errors, 4xx client errors, parse errors — no. The policy takes a predicate so the caller decides. A common bug is retrying everything, which masks real problems and amplifies bad client behavior.</p>
+<p><strong>Bit-shift overflow</strong>: <code>1L &lt;&lt; attempt</code> overflows when <code>attempt ≥ 63</code>. In practice, the <code>min(maxDelay, ...)</code> protects you, but explicit guarding (cap the shift at, say, 30) is cleaner. The C++ version caps at 62 to be safe.</p>
+<p><strong>Interruption</strong>: in Java, <code>Thread.sleep</code> can be interrupted. The correct response is to re-set the interrupt flag and propagate, not swallow the exception. C++ doesn't have the same model — <code>sleep_for</code> isn't interruptible by default — but <code>condition_variable::wait_for</code> is, if you need cancellable retries.</p>
+<p><strong>Stack-trace preservation</strong>: when retries are exhausted, wrap the last exception as the cause rather than swallowing it. Otherwise the operator sees "RetryExhausted" with no clue what was actually failing.</p>
+        </div>
       </div>
     </div>
 
@@ -1499,19 +1616,16 @@
 </div>
 
         <div class="discussion">
-          <div class="label-row">▸ Discussion / Follow-ups</div>
+          <div class="label-row">▸ Discussion / Follow-ups (with answers)</div>
           <ul>
-            <li><strong>Why full jitter?</strong> Equal jitter still synchronizes the thundering herd partially. Full jitter spreads retries uniformly. Cite the AWS architecture blog if asked.</li>
-            <li><strong>Bit-shift overflow?</strong> <code>1L &lt;&lt; attempt</code> for attempt ≥ 63 overflows. Guard with <code>min(maxDelay, ...)</code> or cap the exponent.</li>
-            <li><strong>Async version?</strong> Return <code>CompletableFuture&lt;T&gt;</code>, schedule retries on a <code>ScheduledExecutorService</code>. Avoids blocking a thread during sleep.</li>
-            <li><strong>Production?</strong> Use Resilience4j or Failsafe. Mention it.</li>
-            <li><strong>Total deadline?</strong> Add a <code>Duration totalBudget</code> to the policy and check elapsed time before each attempt.</li>
-          </ul>
+<li><strong>Why full jitter beats equal jitter beats no jitter?</strong> AWS's classic blog post measured this empirically. <strong>No jitter</strong>: 1000 clients retry at exactly t+100ms — thundering herd hits the recovering server, often re-failing. <strong>Equal jitter</strong> (sleep <code>base/2 + random(0, base/2)</code>): herd is partially synchronized — improvement, but a noticeable spike remains. <strong>Full jitter</strong> (sleep <code>random(0, base)</code>): retries spread uniformly across the window, no spike. Counter-intuition: full jitter has higher variance per client, but lower correlation across clients, which is what matters for the recovering service.</li>
+<li><strong>How do you implement async retries?</strong> Sync retries block a thread during sleep — wasteful at scale. Async version: return <code>CompletableFuture&lt;T&gt;</code> (Java) or <code>std::future&lt;T&gt;</code> / <code>folly::Future&lt;T&gt;</code> (C++), schedule retry attempts on a <code>ScheduledExecutorService</code> or equivalent timer. The thread isn't blocked between attempts. This matters when you have thousands of in-flight retried operations — a thread per retry is a non-starter.</li>
+<li><strong>What about a total deadline (budget) instead of just attempt count?</strong> Add <code>Duration totalBudget</code> to the policy. Track elapsed time across attempts; abort if elapsed + nextDelay &gt; budget. This is more useful than attempt count for user-facing operations — "retry for up to 5 seconds" maps directly to a UX requirement, "retry 3 times" doesn't.</li>
+<li><strong>What if the retried operation isn't idempotent?</strong> Don't retry it. Or wrap it in an idempotency key (the operation includes a client-generated UUID; the server dedupes by key). Retrying a non-idempotent operation can cause duplicate side effects — a charged credit card billed twice, an email sent twice. The retry policy should refuse to retry mutations unless the caller has guaranteed idempotency.</li>
+<li><strong>What's the production library answer?</strong> Java: <strong>Resilience4j</strong> (modular, modern, integrates with reactive types) or <strong>Failsafe</strong> (simpler API, fewer features). C++: rolling your own is more common, though <strong>Microsoft's PPL</strong> has retry-like primitives and <strong>folly::futures</strong> can compose retries via <code>onError</code>. Mention the library; show you wouldn't ship hand-rolled retry logic for production HTTP calls.</li>
+<li><strong>How do you handle retriable vs non-retriable in HTTP?</strong> Standard rules: 5xx is retriable (server problem, might recover). 408 (Request Timeout), 429 (Too Many Requests) are retriable with respect to the <code>Retry-After</code> header if present. 4xx other than those is not retriable — the request is bad and won't get better with retries. Connection errors (refused, reset, timeout) are retriable. The predicate in the policy encodes this; bake it as a default for HTTP clients.</li>
+</ul>
         </div>
-
-        <a href="#top" class="top-link">↑ Back to top</a>
-      </div>
-    </div>
   </section>
 
   <!-- ============================================ -->
@@ -1554,6 +1668,25 @@
             <li>Stream both files; don't load everything if data is huge.</li>
           </ol>
         </details>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Approach</div>
+      <div class="content">
+        <div class="approach">
+          <div class="label-row">▸ Design</div>
+          <p>The trap in this problem is the dual-key dedup. You're matching by <em>id OR email</em>, which means a single record can collide with multiple existing records — one by id, a different one by email — and the merge has to handle three-way reconciliation.</p>
+<p>The clean answer: keep <strong>two indexes</strong> (<code>byId</code> and <code>byEmail</code>) that both point to the same record objects. When a new record arrives, look it up in both. There are up to three records in play (incoming + id-match + email-match), all potentially different. Pick the one with the latest <code>updated_at</code> as the winner, then atomically:</p>
+<ul>
+<li>Remove the loser entries from whichever index they were in (otherwise stale pointers).</li>
+<li>Install the winner in both indexes.</li>
+</ul>
+<p>The <strong>output deduplication</strong> step uses identity-based set semantics (Java's <code>IdentityHashMap</code>, C++'s <code>unordered_set&lt;Customer*&gt;</code>) because two records can be <code>.equals</code>-equal as values but represent the same logical entity we want to write once.</p>
+<p><strong>Why ISO-8601 strings work directly for ts comparison in C++</strong>: lexicographic order matches chronological order for ISO-8601's fixed-width format. Saves parsing for the comparison hot path.</p>
+<p><strong>Don't hand-roll CSV parsing</strong> in production. Quoted commas, embedded newlines, escaped quotes, BOMs — they fail subtly and silently. The example code uses <code>split</code> for brevity; mention OpenCSV (Java) or a library like Vince's CSV parser (C++) in the conversation.</p>
+<p><strong>Streaming</strong>: if the files don't fit in memory, the structure changes. External merge sort by key (id, then email) lets you do a linear merge pass. Or push everything into a temp SQLite database — surprisingly often the right answer for "data wrangling at scale on one machine."</p>
+        </div>
       </div>
     </div>
 
@@ -1741,18 +1874,16 @@
 </div>
 
         <div class="discussion">
-          <div class="label-row">▸ Discussion / Follow-ups</div>
+          <div class="label-row">▸ Discussion / Follow-ups (with answers)</div>
           <ul>
-            <li><strong>Files too big to fit in memory?</strong> External merge sort: sort each file by id, sort each by email, merge in passes. Or push into a temp SQLite DB.</li>
-            <li><strong>Why <code>IdentityHashMap</code> for the unique set?</strong> Customer records may be <code>.equals()</code>-equal even when we want them treated as distinct objects during the dedup phase.</li>
-            <li><strong>Production CSV parsing?</strong> Always use a library. Quoted commas, embedded newlines, BOMs — hand-rolling fails subtly.</li>
-            <li><strong>Conflict policy?</strong> Latest-wins is one choice. Could also field-merge, or always prefer file A. Worth asking.</li>
-          </ul>
+<li><strong>What if the files don't fit in memory?</strong> External merge sort is the canonical answer. Sort each file by id (using on-disk sort tools or a streaming sorter), then linear-merge the sorted streams. For the dual-key case (id OR email), you need two passes — sort by id and resolve id-collisions, then sort by email and resolve email-collisions. Or push everything into a temp SQLite database — surprisingly effective for one-machine "data wrangling" at scale, with full SQL for the dedup logic.</li>
+<li><strong>Why <code>IdentityHashMap</code> / pointer-identity for the unique set?</strong> Because two records may be equal-by-value (<code>.equals()</code> returns true if you defined it that way) but represent distinct logical entities we don't want collapsed. We're tracking "have I already written this <em>specific</em> record object?" not "have I written something equal to it?". Identity semantics are correct here; value semantics would corrupt the output.</li>
+<li><strong>What's the right CSV parser?</strong> Java: <strong>OpenCSV</strong> or <strong>Apache Commons CSV</strong>. Both handle quoted commas, embedded newlines, escaped quotes. C++: <strong>Vince's CSV parser</strong>, <strong>Fast C++ CSV Parser</strong>, or build on <strong>std::regex</strong> (slow but works). Hand-rolled <code>split(',')</code> fails on real CSV — the example uses it for brevity but flag the issue. Files exported from Excel, in particular, will have unexpected quoting and BOMs that hand-rolling misses.</li>
+<li><strong>How do you handle conflict policy other than latest-wins?</strong> Three common policies: (a) <strong>Latest wins</strong> (this example). (b) <strong>Field merge</strong> — for each field, take the non-null/non-empty value, with conflict resolution per field. Useful when records partially update each other. (c) <strong>Source priority</strong> — file A always wins, regardless of timestamp. Useful when one source is authoritative. Implementing all three: the merge step takes a <code>BiFunction&lt;Customer, Customer, Customer&gt;</code> resolver; pluggable.</li>
+<li><strong>How do you parallelize?</strong> Two-stage. (1) Each worker reads its chunk and produces a partial dedup result (two indexes locally). (2) Merge step combines workers' indexes pairwise. The merge step has the same logic as the inner loop. The trick: chunks must be split on line boundaries — find a newline near the desired byte offset rather than splitting at exact byte counts.</li>
+<li><strong>What if email normalization needs to be more aggressive?</strong> Real-world: Gmail treats <code>foo+bar@gmail.com</code> and <code>f.o.o@gmail.com</code> as the same address. If the dedup needs to match these, normalization needs domain-specific rules (strip dots and plus-tags for <code>@gmail.com</code>; not for other domains). This is a rabbit hole — agree with the interviewer on scope before going deep.</li>
+</ul>
         </div>
-
-        <a href="#top" class="top-link">↑ Back to top</a>
-      </div>
-    </div>
   </section>
 
   <!-- ============================================ -->
@@ -1795,6 +1926,25 @@
             <li>For speed: parallelize. Split the file into chunks (handling line boundaries), aggregate each in a worker, merge per-user maps at the end.</li>
           </ol>
         </details>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Approach</div>
+      <div class="content">
+        <div class="approach">
+          <div class="label-row">▸ Design</div>
+          <p>Two scaling axes pull in opposite directions:</p>
+<ul>
+<li><strong>File size</strong> — multi-gigabyte. Solution: stream line-by-line, never load the whole file.</li>
+<li><strong>Per-line work</strong> — JSON parsing is the dominant CPU cost. Solution: use a streaming JSON parser (Jackson <code>JsonParser</code> in Java, simdjson or RapidJSON SAX in C++), not the convenient tree-builder (<code>readTree</code>, <code>nlohmann::json::parse</code> for whole documents).</li>
+</ul>
+<p>The streaming parser walks tokens — START_OBJECT, FIELD_NAME, VALUE, END_OBJECT — and you extract just the four fields you need without materializing the whole DOM. For one-shot per-line use it's a smaller win, but it composes correctly when lines get fat.</p>
+<p><strong>Money math</strong>: never use <code>double</code> for currency. <code>0.1 + 0.2 ≠ 0.3</code> in IEEE-754, and accumulated rounding error in summed transaction amounts becomes audit-visible quickly. Use <code>BigDecimal</code> in Java, or a fixed-point integer type (microcents, etc.) in C++. The C++ example here uses <code>double</code> for brevity but flags the issue — be ready to defend that choice or swap it for <code>boost::multiprecision::cpp_dec_float</code> or a custom <code>Decimal</code> class.</p>
+<p><strong>Per-user state</strong>: a hash map keyed on user_id, accumulating count + sum + last-timestamp. Memory scales with distinct users, not events.</p>
+<p><strong>Parallelization</strong> is the hard follow-up. Memory-map the file, scan for newline boundaries near chunk edges (so workers don't split a JSON line), hand each chunk to a worker. Each worker builds its own per-user map; merge them at the end. Amdahl's law dictates the merge step matters at scale, so either keep maps small per worker or use a concurrent map shared by all workers and skip the merge.</p>
+<p><strong>If users don't fit in memory</strong>: external sort by user_id, then linear scan with running aggregations. Or push it into Spark / DuckDB / a real OLAP system — at that scale, hand-rolled is the wrong answer.</p>
+        </div>
       </div>
     </div>
 
@@ -1939,18 +2089,16 @@
 </div>
 
         <div class="discussion">
-          <div class="label-row">▸ Discussion / Follow-ups</div>
+          <div class="label-row">▸ Discussion / Follow-ups (with answers)</div>
           <ul>
-            <li><strong>Why streaming parser, not <code>readTree</code>?</strong> <code>readTree</code> builds an in-memory DOM per line. Fine for tiny payloads, wasteful at scale. Streaming peaks at constant memory per line.</li>
-            <li><strong>Why <code>BigDecimal</code>?</strong> <code>0.1 + 0.2 != 0.3</code> with floats. Money math always uses <code>BigDecimal</code>; bonus points for setting an explicit <code>MathContext</code>.</li>
-            <li><strong>Parallelize?</strong> Memory-map the file, find newline boundaries near chunk edges, hand each chunk to a worker thread. Merge per-user maps at the end. <code>ForkJoinPool</code> works well.</li>
-            <li><strong>Too many users?</strong> External sort by user_id, then linear scan. Or a disk-backed map (RocksDB). Or push to a real OLAP system.</li>
-          </ul>
+<li><strong>Why streaming parser, not the convenience tree-builder?</strong> A tree-builder (<code>readTree</code>, <code>nlohmann::json::parse</code>) builds a full DOM in memory per line. Fine for tiny payloads. At scale: more allocations, more pointer chasing, more GC pressure (Java) or more allocator fragmentation (C++). Streaming parsers walk tokens with constant memory regardless of payload size and skip uninteresting fields cheaply. simdjson goes further — SIMD-accelerated parsing, multiple GB/s on modern CPUs.</li>
+<li><strong>Why <code>BigDecimal</code> / fixed-point for money?</strong> <code>0.1 + 0.2 = 0.30000000000000004</code> in IEEE-754. Sum 10 million transactions and you have audit-visible drift. Two correct approaches: (a) <strong><code>BigDecimal</code></strong> (Java) — arbitrary-precision decimals, slower but exact. Set <code>MathContext</code> explicitly to avoid surprises with division. (b) <strong>Integer cents/microcents</strong> — store amounts as <code>int64</code> in the smallest unit. Fast, exact, no allocation. Industry standard for high-volume systems. Floating-point is acceptable only when error-bound &gt; precision needed (e.g., real-time approximate dashboards).</li>
+<li><strong>How do you parallelize over a single huge file?</strong> Memory-map the file (<code>FileChannel.map</code> in Java, <code>mmap</code> in C++). Compute <code>N</code> chunk boundaries near offset <code>fileSize × i / N</code>. Adjust each boundary forward to the next newline so JSON lines aren't split. Hand each chunk's <code>(start, end)</code> to a worker; each builds a per-user partial map. Final reduction merges them — concurrent map writes during the chunked phase are avoided, so workers are truly independent. <code>ForkJoinPool</code> in Java; <code>std::async</code> or <code>tbb::parallel_for</code> in C++.</li>
+<li><strong>What if user count exceeds memory?</strong> Spill aggregation state to disk. Two approaches: (a) <strong>External sort by user_id</strong>, then linear scan — each user's records arrive contiguously, so accumulation is constant-memory per user. (b) <strong>Disk-backed map</strong> — RocksDB, LMDB, or a sharded file structure. Both are well-trodden. At true scale, push the problem to Spark/DuckDB/Redshift/BigQuery — at some point hand-rolled is the wrong answer.</li>
+<li><strong>What if FX rates change over time and need historical accuracy?</strong> Store historical FX as a time-keyed structure (<code>TreeMap&lt;Instant, Map&lt;Currency, Rate&gt;&gt;</code>). Look up the rate as of the transaction's timestamp, not now. Accountants will complain otherwise. For high-precision needs, you also need to track which rate source you used — cross-currency reconciliation requires it.</li>
+<li><strong>How do you handle malformed JSON gracefully?</strong> The example skips bad lines and counts them. Production: log the line number and the parse error to a dead-letter sink, alert on rate-of-bad-lines, never silently drop. The "skip" pattern is wrong if these are paying customer transactions — you need provable accounting that no transaction was lost.</li>
+</ul>
         </div>
-
-        <a href="#top" class="top-link">↑ Back to top</a>
-      </div>
-    </div>
   </section>
 
   <!-- ============================================ -->
@@ -1993,6 +2141,27 @@
             <li>Don't reach for regex unless asked. Trie is faster and clearer.</li>
           </ol>
         </details>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Approach</div>
+      <div class="content">
+        <div class="approach">
+          <div class="label-row">▸ Design</div>
+          <p>Three matching modes — literal segment, named parameter, wildcard suffix — with priority literal &gt; param &gt; wildcard. The natural data structure is a <strong>trie</strong> over path segments.</p>
+<p>Each trie node has:</p>
+<ul>
+<li>A map of literal-segment children (<code>users</code>, <code>orders</code>, ...).</li>
+<li>An optional single param child (only one param name per position; <code>:userId</code> and <code>:id</code> at the same depth would conflict).</li>
+<li>An optional wildcard with its own per-method handlers.</li>
+<li>A per-method handler map for the route ending at this node.</li>
+</ul>
+<p><strong>Resolution walks the trie</strong> trying literal first, then param (binding the segment to the param name), then wildcard. The recursive walk backtracks if a branch dead-ends — important when, say, <code>/users/admin</code> is a literal route and <code>/users/:id</code> is a param route. Trying admin first as literal succeeds; trying admin as <code>:id</code> would also "succeed" but match the wrong route.</p>
+<p><strong>"Method not allowed" vs "not found"</strong> is what trips most candidates up. The HTTP spec is explicit: if the path matches but the method doesn't, return 405 with an <code>Allow</code> header listing valid methods. That requires distinguishing "no node matched the path" from "node matched but method missing." Both Java (sealed interface) and C++ (<code>std::variant</code>) make this clean — three case types in a sum type, exhaustive matching at the call site.</p>
+<p><strong>Concurrency</strong>: if routes are registered at startup and never change, the trie is effectively immutable after startup — no locks needed for resolution. If routes can change at runtime, copy-on-write the whole trie behind an atomic pointer swap; cheaper than locking and avoids reader stalls.</p>
+<p><strong>Why not regex?</strong> Real frameworks used to. Tries make priority obvious, allow O(path-length) matching, and avoid regex backtracking pathologies. Modern frameworks (Express, gin, Vert.x) have all converged on tries.</p>
+        </div>
       </div>
     </div>
 
@@ -2205,18 +2374,16 @@
 </div>
 
         <div class="discussion">
-          <div class="label-row">▸ Discussion / Follow-ups</div>
+          <div class="label-row">▸ Discussion / Follow-ups (with answers)</div>
           <ul>
-            <li><strong>Why a sealed interface for the result?</strong> Three distinct outcomes (match, method-not-allowed, not-found). Sealed types let the caller exhaustively switch — way cleaner than nullable returns or status enums.</li>
-            <li><strong>Concurrency?</strong> If routes are registered once at startup and read forever, the trie is effectively immutable — safe without locks. If routes change at runtime, copy-on-write the trie or use a versioned reference.</li>
-            <li><strong>Wildcard binding to a name?</strong> Real frameworks (Express, gin) bind <code>/static/*path</code> so the matched suffix is available. Easy extension.</li>
-            <li><strong>Why not regex?</strong> Slower, harder to reason about ambiguity and conflicts. Tries make priority obvious.</li>
-          </ul>
+<li><strong>Why sealed types / variants for the result?</strong> Three distinct outcomes — <code>Match</code>, <code>MethodNotAllowed</code>, <code>NotFound</code> — each carrying different data. Encoding them as a sum type makes the call site exhaustive: switch on the result, handle every case, the compiler enforces it. The alternatives — nullable returns, status enums, exceptions — all bury the structure. Java 17's sealed interfaces and pattern matching make this clean; <code>std::variant</code> in C++ with <code>std::visit</code> is the equivalent.</li>
+<li><strong>How do you handle concurrent route registration?</strong> Two cases. (1) <strong>Static routes</strong> — registered once at startup, immutable thereafter. The trie is effectively const after init; no locks needed for the resolution path (which is the hot path). (2) <strong>Dynamic routes</strong> — copy-on-write. Build a new trie with the new route added, atomically swap the pointer. Old in-flight resolves continue on the old trie; new ones use the new one. Cheaper than locking, no reader stalls. <code>AtomicReference</code> in Java; <code>std::atomic&lt;std::shared_ptr&gt;</code> in C++.</li>
+<li><strong>How do you add wildcard binding (capture the suffix)?</strong> Express does this — <code>/static/*path</code> binds the matched suffix to <code>path</code>. Implementation: when the trie walks into a wildcard, capture remaining segments (joined by <code>/</code>) into a synthetic param. The wildcard node carries the param name. One-line addition to the trie node, two-line addition to the walker.</li>
+<li><strong>How do you support route priority other than literal &gt; param &gt; wildcard?</strong> Some frameworks allow explicit priority annotations. Implementation: track priority per route and use it as a tiebreaker when multiple paths match. Most don't — the literal &gt; param &gt; wildcard convention is intuitive and conflicts are rare in practice. If priorities <em>must</em> be configurable, gin and httprouter use a priority field on the trie node and resolve at registration time.</li>
+<li><strong>Why not regex per route?</strong> (1) <strong>Performance</strong> — regex matching is <code>O(path-length)</code> per route, so total is <code>O(routes × path-length)</code>; trie is <code>O(path-length)</code> total. With hundreds of routes, the difference is real. (2) <strong>Reasoning</strong> — regex backtracking can be exponential on adversarial input (ReDoS). Tries can't backtrack pathologically. (3) <strong>Conflicts</strong> — trie structure makes route conflicts visible at registration time; regex order-of-registration is implicit and bug-prone. Regex was the old way; nobody who's tried both goes back.</li>
+<li><strong>How do you handle case-sensitivity, trailing slashes, query strings?</strong> Convention: paths are case-sensitive (per RFC 3986 for paths, though the standard is fuzzy in practice — most frameworks normalize). Trailing slash: either canonicalize to no trailing slash before matching, or treat <code>/users</code> and <code>/users/</code> as distinct. Most frameworks redirect one to the other. Query strings: stripped before matching; passed through to the handler as a separate map.</li>
+</ul>
         </div>
-
-        <a href="#top" class="top-link">↑ Back to top</a>
-      </div>
-    </div>
   </section>
 
   <!-- ============================================ -->
@@ -2258,6 +2425,22 @@
             <li>Don't use exceptions for control flow — they're slow and clunky for "we found 12 issues."</li>
           </ol>
         </details>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Approach</div>
+      <div class="content">
+        <div class="approach">
+          <div class="label-row">▸ Design</div>
+          <p>The choice that matters most: <strong>collect all errors, don't fail on the first one</strong>. Caller-side, "your email is wrong AND your age is missing AND your zip is malformed" is one round-trip and one fix. Failing fast forces three round-trips. UX wins — and APIs that do this correctly are a small differentiator.</p>
+<p>The shape: a <code>Validator</code> is a function from request → list of violations. Composition is just list-concatenation: <code>(a + b)(req) = a(req) ++ b(req)</code>. This makes validators trivially combinable with no class hierarchy.</p>
+<p>Within a single field, build up checks via a <strong>field-scoped DSL</strong>: <code>field("email").required().type(String).matches(EMAIL_REGEX)</code>. Reads naturally, tests cleanly, and each check is a small isolated function. The DSL is just a builder under the hood — <code>required()</code>, <code>type()</code>, etc. each push a check function onto an internal list.</p>
+<p><strong>Why functional, not annotation-based?</strong> Bean Validation (JSR-380) and equivalents are fine for static models, but they're inflexible — hard to compose runtime rules from config, hard to test in isolation, hard to use when the schema isn't a fixed POJO. Function-based DSLs work for any input source, including dynamic <code>Map</code>s as in this prompt.</p>
+<p><strong>Required vs optional fields</strong>: if a field is missing AND not marked required, skip its remaining checks. Otherwise you'd report "must be a string" on a field that wasn't supposed to be there. The required check is special — it's the only check that runs on a null/missing value.</p>
+<p><strong>Performance</strong>: validators are immutable once built. Build one per endpoint at startup; reuse across requests. No reflection, no allocation per call beyond the violation list.</p>
+<p><strong>Nested fields</strong> (<code>address.zip</code>): two approaches. (a) Flatten — walk the path with split-on-dot. (b) Recurse — sub-validators that operate on sub-objects. (b) is cleaner for deeply nested schemas; (a) is fine for one or two levels.</p>
+        </div>
       </div>
     </div>
 
@@ -2443,18 +2626,16 @@
 </div>
 
         <div class="discussion">
-          <div class="label-row">▸ Discussion / Follow-ups</div>
+          <div class="label-row">▸ Discussion / Follow-ups (with answers)</div>
           <ul>
-            <li><strong>Why functional, not annotations?</strong> Bean Validation (JSR-380) is fine but inflexible — hard to compose runtime rules, hard to test in isolation. A function-based DSL composes via <code>and</code> and works for any source of rules.</li>
-            <li><strong>Nested fields?</strong> Either flatten the path (<code>"address.zip"</code> with map-walking) or recurse with sub-validators on extracted sub-objects.</li>
-            <li><strong>Performance?</strong> Validators are immutable after construction; one builder per endpoint, reused per request. Reflection-free, allocation-light.</li>
-            <li><strong>Why collect all errors?</strong> APIs that fail-fast force users into ping-pong with the server. Collecting all is a UX win.</li>
-          </ul>
+<li><strong>Why functional, not Bean Validation / annotation-based?</strong> Annotations are static — the rules live with the model class. That's fine for fixed POJOs, terrible for: (a) rules driven by runtime config, (b) different rules per endpoint on the same type, (c) testing rules in isolation, (d) dynamic schemas (a <code>Map&lt;String, Object&gt;</code> as in this prompt). Function-based composition gives you all four cleanly. Bean Validation is fine for "validate my User entity"; it's wrong for "validate this incoming JSON body against this endpoint's rules."</li>
+<li><strong>How do you support nested fields like <code>address.zip</code>?</strong> Two clean approaches. (a) <strong>Flatten</strong> — walk the path with split-on-dot. <code>field("address.zip")</code> internally drills down. Simple for shallow nesting. (b) <strong>Recurse</strong> — <code>object("address", subValidator)</code> applies a validator to a sub-map. Composes naturally for deep schemas. (b) is what JSON Schema validators do; (a) is what most ad-hoc DSLs do. Pick based on schema depth.</li>
+<li><strong>How do you internationalize error messages?</strong> Don't put text in violations. Put codes (<code>"REQUIRED"</code>, <code>"FORMAT.EMAIL"</code>) plus parameters (<code>{"min": 0, "max": 150}</code>). Render messages at the response boundary using a locale-aware message bundle. Same pattern as Spring Validation, JSR-380, react-i18next. Putting English strings in violations means rewriting the validators to support other languages — wrong layer.</li>
+<li><strong>Should validation ever short-circuit on first error?</strong> Sometimes — for performance-critical hot paths where validation overhead matters and clients can iterate. The right shape is a separate <code>validateFast(payload)</code> mode that returns on first failure, or making short-circuit a property of the <code>Validator</code> chain. Default should be collect-all; short-circuit is the opt-in.</li>
+<li><strong>How do you handle cross-field validation (e.g., <code>endDate &gt;= startDate</code>)?</strong> Cross-field rules don't fit the <code>field("name").required()</code> shape. Add a top-level constraint: <code>constraint(req -&gt; req.endDate &gt;= req.startDate, "DATE_ORDER", "endDate must be after startDate")</code>. These run after field-level checks (so individual fields are known valid). Some frameworks call these "object-level constraints" (Bean Validation) or "predicate" rules.</li>
+<li><strong>How does this perform under load?</strong> Validators built once at startup; the request path just executes pre-built closures. No reflection, no annotation scanning, no allocation per call beyond the violations list. With a small (often empty) violations list and immutable validators, the throughput is essentially the cost of the underlying type checks and regex matches. Profile if you must, but 99% of the time validation isn't the bottleneck — JSON parsing or DB calls are.</li>
+</ul>
         </div>
-
-        <a href="#top" class="top-link">↑ Back to top</a>
-      </div>
-    </div>
   </section>
 
   <!-- ============================================ -->
@@ -2508,6 +2689,27 @@
             <li>Don't use <code>switch</code> on rule type strings — that's the failure mode they're checking for.</li>
           </ol>
         </details>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Approach</div>
+      <div class="content">
+        <div class="approach">
+          <div class="label-row">▸ Design</div>
+          <p>The interviewer's actual test isn't whether you can evaluate the rules. It's whether <strong>adding a new rule type is a one-class change.</strong> If you write a giant <code>switch</code> on rule type and have to edit it for every new rule, that's the failing answer. The passing answer inverts the dependency: rules register themselves; the engine only knows about the registry.</p>
+<p>This is the classic <strong>Strategy pattern with a registry</strong>. The pieces:</p>
+<ul>
+<li><strong>Rule</strong> — interface with an <code>evaluate(transaction)</code> method and an optional action.</li>
+<li><strong>RuleFactory</strong> — knows how to build a Rule from a JSON spec.</li>
+<li><strong>RuleRegistry</strong> — maps type-strings to factories. <code>registry.build(spec)</code> looks up the factory by <code>spec.type</code> and delegates.</li>
+</ul>
+<p>Adding "velocity check"? Write a <code>VelocityRule</code> class and a factory, register it: <code>registry.register("velocity", (n, r) -&gt; new VelocityRule(...))</code>. Engine code unchanged. That's the test.</p>
+<p><strong>Composite rules</strong> (<code>all</code>, <code>any</code>) are recursive — they hold a list of sub-rules and combine their results. They take the registry too, because they need to build their children. Notice that the recursion is open: composites can contain composites, naturally.</p>
+<p><strong>Action propagation</strong>: only top-level rules carry actions in this design. Inner rules of a composite don't fire actions independently — only the composite does, when all its children agree. This matches the JSON in the prompt and is what most real fraud engines do.</p>
+<p><strong>Validate at load time, not eval time</strong>. If a rule type is unknown, fail at config-load. The hot path (<code>evaluate</code>) should never throw on bad config.</p>
+<p><strong>Hot reload</strong>: build a new <code>RuleEngine</code> from new config, atomically swap the reference (<code>volatile</code> in Java, <code>std::atomic&lt;std::shared_ptr&gt;</code> in C++). Old in-flight evaluations finish on the old engine; new ones use the new one. No locking on the hot path.</p>
+        </div>
       </div>
     </div>
 
@@ -2745,19 +2947,17 @@
 </div>
 
         <div class="discussion">
-          <div class="label-row">▸ Discussion / Follow-ups</div>
+          <div class="label-row">▸ Discussion / Follow-ups (with answers)</div>
           <ul>
-            <li><strong>Why a registry, not a switch?</strong> The switch couples the engine to every rule type. The registry inverts the dependency — new rules add themselves at startup. Open/closed in practice.</li>
-            <li><strong>Schema validation?</strong> Validate config at load time, not eval time. Fail loud and fail early.</li>
-            <li><strong>Reload at runtime?</strong> Build a new <code>RuleEngine</code> from new config and atomically swap the reference (volatile field or <code>AtomicReference</code>). Don't mutate.</li>
-            <li><strong>Performance?</strong> Compile to predicate trees once at construction; the hot path is just <code>evaluate</code>. For very high QPS, consider expression-tree compilers like Janino.</li>
-            <li><strong>Why expose action only at the top level?</strong> Inner rules are sub-conditions; only the outer rule decides what action fires. Action-on-inner is silent (returns null).</li>
-          </ul>
+<li><strong>Why a registry, not a switch on rule type?</strong> The switch couples the engine code to every rule type — every new rule edits the engine. The registry inverts that: rules register themselves at startup; the engine knows nothing about specific types. <strong>Open-closed principle</strong> in practice. The interviewer's actual test is whether adding a new rule type is a one-class change. With the registry, it is.</li>
+<li><strong>How do you validate config at load time?</strong> Walk the JSON before the engine accepts it. For each rule node: check that the type exists in the registry, check that required fields are present (each factory can declare its required fields), recursively validate composite children. Run this <em>once</em> at startup; surface failures as exceptions before the service starts handling requests. The eval hot path should never throw on bad config.</li>
+<li><strong>How do you reload config at runtime without downtime?</strong> Build a new <code>RuleEngine</code> from the new config, then atomically swap the reference (<code>volatile</code> / <code>AtomicReference</code> in Java; <code>std::atomic&lt;std::shared_ptr&gt;</code> in C++). Old in-flight evaluations finish on the old engine — no shared state to corrupt — and new ones use the new engine. No locking on the hot path; no coordination needed.</li>
+<li><strong>How do you make this fast for very high QPS?</strong> Three optimizations. (1) <strong>Compile to predicate trees once</strong> — the design already does this; the registry builds a closure per rule at construction. (2) <strong>Short-circuit composites</strong> — <code>all</code> stops on first false, <code>any</code> stops on first true. Both built-in. (3) <strong>JIT / expression-tree compilation</strong> — for extreme cases, libraries like <strong>Janino</strong> (Java) or expression-template libraries (C++) can compile rules to bytecode/native code. Rarely worth it; the JIT typically optimizes well-shaped predicate trees just fine.</li>
+<li><strong>Why do inner rules of composites return <code>null</code> action?</strong> Because actions are decisions about the transaction; inner rules are conditions, not decisions. A rule that says "amount &gt; 500 AND new account → REVIEW" has one action (REVIEW) — the AND has it. The two inner conditions don't independently flag anything. If you allowed inner actions, semantics get muddled — does an inner FLAG fire if the outer composite is <code>any</code> and another branch already triggered BLOCK? Better to keep it clean: only top-level rules carry actions.</li>
+<li><strong>How would you add a NOT operator?</strong> Trivially. Register a <code>"not"</code> factory that takes <code>{"rule": &lt;sub-rule&gt;}</code> and inverts the result. Three lines: <code>registry.register("not", (n, r) -&gt; new PredicateRule(tx -&gt; !r.build(n.get("rule")).evaluate(tx), actionOrNull(n)))</code>. Same pattern for any new operator. This <em>is</em> the test the interviewer is running.</li>
+<li><strong>What about rules that need external data (e.g., velocity check across recent transactions)?</strong> Pass dependencies into the registry. The factory closes over them; rules access them via the closure. Example: <code>registry.register("velocity", (n, r) -&gt; new VelocityRule(transactionStore, n.get("threshold").asInt()))</code>. The rule keeps a reference to <code>transactionStore</code> and queries it during <code>evaluate</code>. Doesn't break the abstraction.</li>
+</ul>
         </div>
-
-        <a href="#top" class="top-link">↑ Back to top</a>
-      </div>
-    </div>
   </section>
 
   <!-- ============================================ -->
@@ -2800,6 +3000,27 @@
             <li>Mention that real implementations (Resilience4j) batch event recording for performance.</li>
           </ol>
         </details>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Approach</div>
+      <div class="content">
+        <div class="approach">
+          <div class="label-row">▸ Design</div>
+          <p>Three states form a small state machine:</p>
+<ul>
+<li><code>CLOSED</code> — calls flow normally; failures are tallied.</li>
+<li><code>OPEN</code> — calls fail-fast immediately, without invoking the underlying operation. After a cool-down period, transitions to HALF_OPEN.</li>
+<li><code>HALF_OPEN</code> — a small number of "probe" calls are allowed through. If they succeed, the breaker closes again. If any fail, it re-opens.</li>
+</ul>
+<p>The state is the source of truth. Statistics inform transitions but are kept separate. Each transition is implemented with <strong>compare-and-set</strong> rather than plain writes — two threads simultaneously deciding to trip the breaker would otherwise both write <code>OPEN</code> and corrupt the timer (each setting <code>openedAt</code> to its own now). CAS guarantees the transition happens exactly once; the loser thread observes the winner's transition and skips its own.</p>
+<p><strong>OPEN → HALF_OPEN transition is time-based</strong>. The cleanest implementation is to check elapsed time on each call, rather than scheduling a timer fire. If the call finds the breaker OPEN with elapsed &gt; cooldown, it CASes to HALF_OPEN and proceeds as a probe. No background threads, no scheduler dependencies.</p>
+<p><strong>Probe limiting</strong> in HALF_OPEN: only allow N probes through; the rest fast-fail like OPEN. This is what prevents a single recovery attempt from being clobbered by full traffic. Implement with an atomic counter — increment-and-check, decrement on completion.</p>
+<p><strong>Failure counting</strong> via a fixed-size ring buffer. The "filled" guard is critical: don't trip on a single failure when the buffer's only seen one call. Without that guard, the breaker is hair-trigger on cold start.</p>
+<p><strong>What counts as a failure?</strong> Up to you. Standard answer: any thrown exception. Resilience4j extends this with slow-call detection — a call that succeeds but takes longer than threshold counts as a failure. Worth mentioning if asked.</p>
+<p><strong>The cleanup edge case</strong>: when HALF_OPEN succeeds and transitions back to CLOSED, reset the failure ring buffer. Otherwise old failures persist and could re-trip the breaker prematurely.</p>
+        </div>
       </div>
     </div>
 
@@ -3066,19 +3287,17 @@
 </div>
 
         <div class="discussion">
-          <div class="label-row">▸ Discussion / Follow-ups</div>
+          <div class="label-row">▸ Discussion / Follow-ups (with answers)</div>
           <ul>
-            <li><strong>Why CAS for state transitions?</strong> Two threads tripping the breaker simultaneously could otherwise overwrite <code>openedAt</code> and confuse the timer. CAS makes the transition exactly-once.</li>
-            <li><strong>Why not <code>volatile</code> alone?</strong> <code>volatile</code> gives visibility but not atomic compound updates. Compare-and-set is the right primitive for state machines.</li>
-            <li><strong>Time-based windows?</strong> The ring buffer is count-based. Time-based requires bucketing by time slot — easy extension.</li>
-            <li><strong>Production?</strong> Resilience4j. Mention it. They handle slow-call detection, listeners, metrics, and bulkheading.</li>
-            <li><strong>Why require the buffer to be filled before tripping?</strong> Without it, a single failure from a cold start trips the breaker. Common bug.</li>
-          </ul>
+<li><strong>Why CAS for state transitions, not just <code>volatile</code> writes?</strong> <code>volatile</code> gives <em>visibility</em> — other threads see the update. CAS gives <em>atomicity</em> — the transition happens exactly once. Without CAS, two threads simultaneously deciding to trip the breaker both write <code>OPEN</code> and both write <code>openedAt</code> with their own <code>now</code> values; the timer is now wrong (the later write wins, so the cool-down is shortened). With CAS, one thread wins the transition, observes its own write, sets <code>openedAt</code> consistently. The other thread's CAS fails; it sees the winner's state and skips redundant work.</li>
+<li><strong>What's the difference between count-based and time-based windows for the failure ratio?</strong> Count-based (this example): "trip if ≥ 50% of last 100 calls failed." Simple, predictable memory, but tail latency matters less. Time-based: "trip if ≥ 50% of last 60 seconds of calls failed." More intuitive for ops, but needs bucketing (same structure as the sliding-window error-rate problem). Resilience4j supports both. Real services usually use time-based; count-based is simpler for interview code.</li>
+<li><strong>How do you detect slow calls as failures?</strong> Resilience4j's "slow call" feature: a call that succeeds but takes longer than a threshold counts as a failure for breaker purposes. Implementation: time the call, compare to threshold, record outcome accordingly. Useful when downstream is technically responding but at unusable latencies — your service is degrading even though no exceptions are thrown.</li>
+<li><strong>What's the production answer?</strong> Java: <strong>Resilience4j</strong>. It's the modern standard — modular, lightweight, integrates with reactive types and metrics. Hystrix is the older alternative; Netflix has deprecated it. C++: ecosystem is fragmented; you'd typically integrate with your service mesh (Envoy has circuit breaking built in) rather than handling it in-process. Mention the library; show you wouldn't ship hand-rolled breakers for production HTTP calls.</li>
+<li><strong>What if multiple HALF_OPEN probes are still in flight when one fails?</strong> The first failure trips the breaker back to OPEN. In-flight probes complete normally (no point cancelling them — they're already running) but their outcomes don't matter for state once OPEN is re-entered. The CAS guard on <code>HALF_OPEN → OPEN</code> ensures only the first failure's transition wins; subsequent failures see OPEN and don't re-execute the transition.</li>
+<li><strong>How do you expose state for observability?</strong> Expose the state, the failure rate, and the time-since-last-transition as metrics (via Micrometer / Prometheus). Operators want to see: which breakers are open, how long they've been open, what their failure rates were when they tripped. State changes should also emit events for audit. Resilience4j has this built in; if you're rolling your own, add a simple event listener interface.</li>
+<li><strong>How does this compose with retries?</strong> Carefully. Naive: retry inside breaker — each retry counts as a separate call, and a flaky downstream causes multiple failures per logical request, which trips the breaker faster than intended. Better: breaker outside retry — the breaker sees one logical attempt; the retry handles transient errors that don't deserve to count against the breaker's tally. Resilience4j composes them in this order via decorators.</li>
+</ul>
         </div>
-
-        <a href="#top" class="top-link">↑ Back to top</a>
-      </div>
-    </div>
   </section>
 
   <!-- ============================================ -->
@@ -3121,6 +3340,33 @@
             <li>Reject the temptation to combine priority queue + scheduled executor manually. <code>DelayQueue</code> with a custom <code>Delayed</code> does both.</li>
           </ol>
         </details>
+      </div>
+    </div>
+
+    <div class="problem-body">
+      <div class="label">Approach</div>
+      <div class="content">
+        <div class="approach">
+          <div class="label-row">▸ Design</div>
+          <p>Three requirements layered on a simple priority queue:</p>
+<ol>
+<li><strong>Priority</strong> — higher priority runs first.</li>
+<li><strong>Delayed execution</strong> — jobs scheduled in the future shouldn't run until their time arrives.</li>
+<li><strong>FIFO within priority</strong> — equal-priority jobs run in submission order.</li>
+</ol>
+<p>Java has <code>DelayQueue</code> built in: a blocking queue where <code>take()</code> only returns elements whose delay has expired. Combined with a custom <code>Delayed</code> implementation that defines the priority and FIFO comparator, this gets all three for free. C++ has no equivalent, so the example builds it from <code>std::priority_queue</code> + <code>std::condition_variable::wait_until</code>. Same idea, more code.</p>
+<p><strong>The comparator is the trick</strong>. Three keys in priority order:</p>
+<ol>
+<li>Ready time, ascending — a task ready 5 minutes from now beats one ready 10 minutes from now.</li>
+<li>Priority, descending — among ready tasks, higher priority first.</li>
+<li>Submission sequence, ascending — among same-priority tasks, FIFO.</li>
+</ol>
+<p>The submission sequence comes from a monotonic counter (<code>AtomicLong</code> in Java, <code>std::atomic&lt;int64_t&gt;</code> in C++) incremented on every submission. Without it, "same priority" ties resolve nondeterministically.</p>
+<p><strong>Why <code>DelayQueue</code> over a manual priority queue + sleep loop?</strong> The manual version has a classic bug: workers sleep until the next task's ready-time, but if a higher-priority task arrives during the sleep, you don't wake up. <code>DelayQueue</code>'s blocking <code>take()</code> handles wake-on-insert correctly. <code>condition_variable::wait_until</code> in C++ does the same — workers block on the CV; a new submission notifies and they re-evaluate.</p>
+<p><strong>Retries</strong>: on failure, increment the attempt counter, compute backoff, requeue with a new ready time. The worker doesn't busy-loop or block — it just re-submits and goes back to <code>take()</code>.</p>
+<p><strong>Daemon threads</strong> (Java) so the JVM can exit cleanly without explicit shutdown. C++ requires explicit <code>join</code>, so the destructor calls <code>close()</code> which sets <code>running = false</code>, notifies all workers, and joins them.</p>
+<p><strong>The persistence question</strong> is the natural follow-up. In-memory means jobs vanish on crash. Real systems (Sidekiq, Resque, RabbitMQ delayed plugin, AWS SQS) use external storage. The architecture is the same — the queue interface is the abstraction; swap the implementation.</p>
+        </div>
       </div>
     </div>
 
@@ -3335,25 +3581,22 @@
 </div>
 
         <div class="discussion">
-          <div class="label-row">▸ Discussion / Follow-ups</div>
+          <div class="label-row">▸ Discussion / Follow-ups (with answers)</div>
           <ul>
-            <li><strong>Why <code>DelayQueue</code> over a custom priority queue + sleep?</strong> Built-in: blocking <code>take()</code> wakes exactly when the next item is ready. No polling, no thread coordination bugs.</li>
-            <li><strong>Why bake priority into the comparator?</strong> Tiebreaking by submission sequence gives FIFO-within-priority — exactly what most users mean by "priority queue."</li>
-            <li><strong>Persistence?</strong> Outside the prompt, but the design extends cleanly: write submissions to a WAL, replay on startup. Or back the queue with Redis sorted sets / a real broker (RabbitMQ, SQS).</li>
-            <li><strong>Backpressure?</strong> Add a bounded variant — <code>submit</code> blocks or rejects when full. Ask the interviewer which.</li>
-            <li><strong>Why daemon threads?</strong> So the JVM can exit cleanly without explicit close (though <code>close()</code> is provided for ordered shutdown).</li>
-            <li><strong>Cancellation?</strong> Return a handle from <code>submit</code>; cancellation removes from the queue or sets a flag the job checks.</li>
-          </ul>
+<li><strong>How do you make this durable (survive crashes)?</strong> Outside the prompt, but the design extends cleanly. Two paths: (a) <strong>Write-ahead log</strong> — append every <code>submit</code> to a log file before returning; replay on startup to rebuild the queue. Mark jobs done in the log on completion. (b) <strong>External broker</strong> — push the queue out of process: RabbitMQ delayed plugin, AWS SQS with delay seconds, Redis sorted sets keyed on ready-time, or a real job queue (Sidekiq, BullMQ, dramatiq). The in-memory queue interface is a clean abstraction; the implementation is swap-in.</li>
+<li><strong>How do you handle backpressure when the queue grows unbounded?</strong> Two strategies. (a) <strong>Bounded queue</strong> — submit blocks (or rejects) when full. Backpressure flows back to producers naturally. (b) <strong>Spillover</strong> — overflow to disk or a slower tier. Most systems pick (a) — explicit failure beats silent OOM. Configure: <code>BlockingJobQueue(capacity=10000, rejectionPolicy=BLOCK | DROP_OLDEST | THROW)</code>.</li>
+<li><strong>How do you support cancellation?</strong> Return a handle from <code>submit</code> with a <code>cancel()</code> method. Two implementations. (a) <strong>Best-effort</strong> — <code>cancel()</code> tries to remove the task from the queue; if it's already running, it sets a flag the job checks periodically. (b) <strong>Hard-cancel</strong> — running jobs are interrupted (Java <code>Thread.interrupt</code>) or their associated <code>Future</code> is cancelled with <code>mayInterruptIfRunning=true</code>. (a) is safer; (b) requires jobs to be interrupt-safe.</li>
+<li><strong>How do retries interact with priority?</strong> By default, retried jobs keep their original priority — fairness within the priority tier. Some systems demote retries (a job that's failed once is "less trusted"; let fresh jobs go first). Implement either way: in the <code>Task</code>, either reuse the original priority or subtract per-retry. Consider: do you want a permanently-failing high-priority job to monopolize the queue? Demoting retries prevents that.</li>
+<li><strong>What's a poison-pill job and how do you handle it?</strong> A job that always fails (bad input, fundamentally broken). Without a max-attempts cap, it retries forever. With one (this example uses <code>maxAttempts</code>), it eventually moves to a dead-letter sink — log it, alert on it, possibly move to a separate queue for manual inspection. The DLQ pattern is standard; it's the difference between a job queue that survives bad jobs and one that's clogged by them.</li>
+<li><strong>How do you parallelize beyond N worker threads?</strong> The single-machine ceiling is roughly <code>N × (1 / per-job-time)</code>. Past that: distribute. Run multiple instances of this service, each pulling from a shared queue (Redis / Kafka / SQS). Each instance has its local worker pool. Job scheduling per machine is unchanged; the queue is what scales out. This is the architecture every real job system uses — Sidekiq, Celery, etc.</li>
+<li><strong>What's a sample bug in this code worth pointing out?</strong> The C++ comparator must produce a <strong>strict weak ordering</strong>. Three keys — readyAt, priority, seq — with consistent direction. The example handles this carefully (priority is the only descending key; readyAt and seq are ascending). Get the direction wrong on any key and <code>std::priority_queue</code> ordering breaks subtly — jobs get out of order without crashing, hardest kind of bug to find.</li>
+</ul>
         </div>
-
-        <a href="#top" class="top-link">↑ Back to top</a>
-      </div>
-    </div>
   </section>
 
   <footer>
     <div class="colophon">
-      <strong style="color: var(--ink);">A practice set</strong> · 12 problems for the practical-coding round · Java 17 idioms · Set in Fraunces &amp; JetBrains Mono · Share freely
+      <strong style="color: var(--ink);">A practice set</strong> · 12 problems for the practical-coding round · Java 17 + C++17 · Detailed approach + answered follow-ups · Share freely
     </div>
     <div class="stamp">
       Ship something today<br>
